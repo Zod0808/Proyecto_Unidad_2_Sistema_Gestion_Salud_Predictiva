@@ -1,0 +1,102 @@
+# ASP.NET MVC
+AspNetMvc/bin/
+AspNetMvc/obj/
+AspNetMvc/packages/
+AspNetMvc/*.user
+AspNetMvc/*.suo
+AspNetMvc/.vs/
+AspNetMvc/App_Data/*.mdf
+AspNetMvc/App_Data/*.ldf
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# NuGet
+*.nupkg
+**/packages/*
+!**/packages/build/
+*.nuget.props
+*.nuget.targets
+
+# Python / AI Services
+ai-services/__pycache__/
+ai-services/*.py[cod]
+ai-services/*$py.class
+ai-services/.Python
+ai-services/venv/
+ai-services/env/
+ai-services/.venv
+ai-services/pip-log.txt
+ai-services/pip-delete-this-directory.txt
+ai-services/.pytest_cache/
+ai-services/.coverage
+ai-services/htmlcov/
+ai-services/*.egg-info/
+ai-services/dist/
+ai-services/build/
+
+# AI Models (grandes archivos)
+ai-services/models/*.pkl
+ai-services/models/*.joblib
+ai-services/models/*.h5
+ai-services/models/*.pth
+ai-services/cache/
+
+# Docker
+docker-compose.override.yml
+.env
+
+# MongoDB
+mongodb/data/
+
+# Logs
+*.log
+logs/
+ai-services/logs/
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.cache
+
+# Sensitive data
+*.pfx
+*.key
+*.pem
+appsettings.Production.json
+Web.Production.config
+

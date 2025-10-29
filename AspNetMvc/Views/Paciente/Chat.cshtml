@@ -1,0 +1,228 @@
+@model Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ChatIA
+
+@{
+    ViewBag.Title = "Chat con IA";
+    Layout = "~/Views/Share/_Layout.cshtml";
+}
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-robot"></i> Chat con IA - Triaje Médico</h2>
+            <a href="@Url.Action("ChatIA", "Paciente")" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Volver a Lista
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="bi bi-chat-dots"></i> Conversación</h5>
+                @if (Model.NivelUrgencia.HasValue)
+                {
+                    <span class="badge bg-@(Model.NivelUrgencia <= 2 ? "success" : Model.NivelUrgencia == 3 ? "warning" : "danger")">
+                        Urgencia: @Model.NivelUrgenciaTexto
+                    </span>
+                }
+            </div>
+            <div class="card-body p-0">
+                <div class="chat-container p-3" id="chatContainer" style="height: 400px; overflow-y: auto;">
+                    @if (Model.Mensajes != null && Model.Mensajes.Any())
+                    {
+                        foreach (var mensaje in Model.Mensajes.OrderBy(m => m.Timestamp))
+                        {
+                            <div class="message @(mensaje.EsDelPaciente ? "user" : "ai")">
+                                <div class="message-bubble">
+                                    @mensaje.Mensaje
+                                </div>
+                                <div class="message-time">
+                                    <small class="text-muted">@mensaje.Timestamp.ToString("HH:mm")</small>
+                                </div>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <div class="message ai">
+                            <div class="message-bubble">
+                                Hola, soy tu asistente médico virtual. Estoy aquí para ayudarte con una evaluación inicial de tus síntomas. ¿En qué puedo ayudarte hoy?
+                            </div>
+                        </div>
+                    }
+                </div>
+                
+                @if (!Model.Completado)
+                {
+                    <div class="border-top p-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="mensajeInput" placeholder="Escribe tu mensaje aquí...">
+                            <button class="btn btn-primary" type="button" onclick="enviarMensaje()">
+                                <i class="bi bi-send"></i> Enviar
+                            </button>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="border-top p-3 bg-light">
+                        <div class="text-center">
+                            <i class="bi bi-check-circle text-success"></i>
+                            <strong class="text-success">Chat Completado</strong>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Información del Chat -->
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="bi bi-info-circle"></i> Información del Chat</h6>
+            </div>
+            <div class="card-body">
+                <p><strong>Inicio:</strong> @Model.FechaInicio.ToString("dd/MM/yyyy HH:mm")</p>
+                @if (Model.FechaFin.HasValue)
+                {
+                    <p><strong>Fin:</strong> @Model.FechaFin.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                }
+                <p><strong>Estado:</strong> 
+                    @if (Model.Completado)
+                    {
+                        <span class="badge bg-success">Completado</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-primary">En Proceso</span>
+                    }
+                </p>
+                @if (Model.NivelUrgencia.HasValue)
+                {
+                    <p><strong>Nivel de Urgencia:</strong> 
+                        <span class="badge bg-@(Model.NivelUrgencia <= 2 ? "success" : Model.NivelUrgencia == 3 ? "warning" : "danger")">
+                            @Model.NivelUrgenciaTexto
+                        </span>
+                    </p>
+                }
+            </div>
+        </div>
+
+        <!-- Resumen IA -->
+        @if (!string.IsNullOrEmpty(Model.ResumenTriaje))
+        {
+            <div class="card mb-3">
+                <div class="card-header bg-warning text-dark">
+                    <h6 class="mb-0"><i class="bi bi-clipboard-data"></i> Resumen del Triaje</h6>
+                </div>
+                <div class="card-body">
+                    <p>@Model.ResumenTriaje</p>
+                </div>
+            </div>
+        }
+
+        <!-- Síntomas Reportados -->
+        @if (!string.IsNullOrEmpty(Model.SintomasReportados))
+        {
+            <div class="card mb-3">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="bi bi-thermometer"></i> Síntomas Reportados</h6>
+                </div>
+                <div class="card-body">
+                    <p>@Model.SintomasReportados</p>
+                </div>
+            </div>
+        }
+
+        <!-- Recomendaciones IA -->
+        @if (!string.IsNullOrEmpty(Model.RecomendacionesIA))
+        {
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Recomendaciones</h6>
+                </div>
+                <div class="card-body">
+                    <p>@Model.RecomendacionesIA</p>
+                    @if (Model.NivelUrgencia >= 3)
+                    {
+                        <div class="alert alert-warning mt-2">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <strong>Importante:</strong> Se recomienda agendar una cita médica.
+                        </div>
+                        <a href="@Url.Action("ReservarCita", "Paciente")" class="btn btn-warning btn-sm">
+                            <i class="bi bi-calendar-plus"></i> Reservar Cita
+                        </a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function enviarMensaje() {
+            var mensaje = $('#mensajeInput').val().trim();
+            if (mensaje === '') return;
+
+            // Agregar mensaje del usuario al chat
+            agregarMensaje(mensaje, true);
+            $('#mensajeInput').val('');
+
+            // Enviar mensaje via AJAX
+            $.ajax({
+                url: '@Url.Action("EnviarMensaje", "Paciente")',
+                type: 'POST',
+                data: {
+                    chatId: @Model.Id,
+                    mensaje: mensaje
+                },
+                success: function(response) {
+                    if (response.success) {
+                        // Agregar respuesta de la IA
+                        setTimeout(function() {
+                            agregarMensaje(response.respuesta, false);
+                        }, 1000);
+                    }
+                },
+                error: function() {
+                    alert('Error al enviar el mensaje');
+                }
+            });
+        }
+
+        function agregarMensaje(mensaje, esDelUsuario) {
+            var claseUsuario = esDelUsuario ? 'user' : 'ai';
+            var tiempoActual = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            
+            var mensajeHtml = `
+                <div class="message ${claseUsuario}">
+                    <div class="message-bubble">
+                        ${mensaje}
+                    </div>
+                    <div class="message-time">
+                        <small class="text-muted">${tiempoActual}</small>
+                    </div>
+                </div>
+            `;
+            
+            $('#chatContainer').append(mensajeHtml);
+            $('#chatContainer').scrollTop($('#chatContainer')[0].scrollHeight);
+        }
+
+        // Permitir envío con Enter
+        $('#mensajeInput').keypress(function(e) {
+            if (e.which === 13) {
+                enviarMensaje();
+            }
+        });
+
+        // Auto-scroll al final del chat
+        $(document).ready(function() {
+            $('#chatContainer').scrollTop($('#chatContainer')[0].scrollHeight);
+        });
+    </script>
+}

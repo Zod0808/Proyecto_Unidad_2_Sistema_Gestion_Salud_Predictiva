@@ -1,0 +1,234 @@
+@model Dictionary<string, object>
+@{
+    ViewBag.Title = "Dashboard Principal";
+    Layout = "~/Views/Share/_Layout.cshtml";
+    
+    var usuariosStats = Model.ContainsKey("Usuarios") ? (Dictionary<string, int>)Model["Usuarios"] : new Dictionary<string, int>();
+    var historialesStats = Model.ContainsKey("Historiales") ? (Dictionary<string, object>)Model["Historiales"] : new Dictionary<string, object>();
+    var reportesStats = Model.ContainsKey("Reportes") ? (Dictionary<string, object>)Model["Reportes"] : new Dictionary<string, object>();
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1><i class="fas fa-tachometer-alt"></i> Dashboard RespiCare</h1>
+        <p class="text-muted">Sistema Integral de Enfermedades Respiratorias</p>
+        <hr />
+    </div>
+</div>
+
+<!-- Estadísticas Generales -->
+<div class="row">
+    <!-- Usuarios -->
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #3b82f6, #2563eb);">
+            <h3>@(usuariosStats.ContainsKey("Total") ? usuariosStats["Total"] : 0)</h3>
+            <p><i class="fas fa-users"></i> Usuarios Totales</p>
+            <small>@(usuariosStats.ContainsKey("Activos") ? usuariosStats["Activos"] : 0) activos</small>
+        </div>
+    </div>
+    
+    <!-- Historiales -->
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+            <h3>@(historialesStats.ContainsKey("Total") ? historialesStats["Total"] : 0)</h3>
+            <p><i class="fas fa-file-medical"></i> Historiales Médicos</p>
+            <small>@(historialesStats.ContainsKey("Urgentes") ? historialesStats["Urgentes"] : 0) urgentes</small>
+        </div>
+    </div>
+    
+    <!-- Reportes -->
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+            <h3>@(reportesStats.ContainsKey("Total") ? reportesStats["Total"] : 0)</h3>
+            <p><i class="fas fa-notes-medical"></i> Reportes de Síntomas</p>
+            <small>@(reportesStats.ContainsKey("Urgentes") ? reportesStats["Urgentes"] : 0) urgentes</small>
+        </div>
+    </div>
+    
+    <!-- Con Análisis IA -->
+    <div class="col-md-3">
+        <div class="stat-card" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+            <h3>@(reportesStats.ContainsKey("ConAnalisisIA") ? reportesStats["ConAnalisisIA"] : 0)</h3>
+            <p><i class="fas fa-robot"></i> Con Análisis IA</p>
+            <small>Powered by ML</small>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos Rápidos -->
+<div class="row mt-4">
+    <div class="col-12">
+        <h3><i class="fas fa-bolt"></i> Accesos Rápidos</h3>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-plus-circle fa-3x text-primary mb-3"></i>
+                <h5>Nuevo Reporte</h5>
+                <p class="text-muted">Crear reporte de síntomas</p>
+                <a href="@Url.Action("Create", "ReporteSintomas")" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Crear
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                <h5>Casos Urgentes</h5>
+                <p class="text-muted">Ver casos que requieren atención</p>
+                <a href="@Url.Action("Urgencias", "DashboardRespiCare")" class="btn btn-danger">
+                    <i class="fas fa-eye"></i> Ver Urgencias
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                <h5>Analytics</h5>
+                <p class="text-muted">Visualizar estadísticas</p>
+                <a href="@Url.Action("Analytics", "DashboardRespiCare")" class="btn btn-success">
+                    <i class="fas fa-chart-bar"></i> Ver Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body text-center">
+                <i class="fas fa-map-marked-alt fa-3x text-info mb-3"></i>
+                <h5>Mapa Interactivo</h5>
+                <p class="text-muted">Ver casos en el mapa</p>
+                <a href="@Url.Action("MapaInteractivo", "DashboardRespiCare")" class="btn btn-info">
+                    <i class="fas fa-map"></i> Ver Mapa
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Distribución por Rol -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-users"></i> Distribución de Usuarios por Rol
+            </div>
+            <div class="card-body">
+                <canvas id="usersChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-chart-pie"></i> Estado de Reportes
+            </div>
+            <div class="card-body">
+                <canvas id="reportsChart" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Información del Sistema -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle"></i> Información del Sistema
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Fecha:</strong> @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+                        <p><strong>Base de Datos:</strong> MongoDB</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Servicios IA:</strong> Python FastAPI</p>
+                        <p><strong>Framework:</strong> ASP.NET MVC 5</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Versión:</strong> 1.0.0</p>
+                        <p><strong>Ambiente:</strong> Desarrollo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+    // Gráfico de Usuarios por Rol
+    var ctxUsers = document.getElementById('usersChart').getContext('2d');
+    var usersChart = new Chart(ctxUsers, {
+        type: 'doughnut',
+        data: {
+            labels: ['Pacientes', 'Doctores', 'Administradores'],
+            datasets: [{
+                data: [
+                    @(usuariosStats.ContainsKey("Pacientes") ? usuariosStats["Pacientes"] : 0),
+                    @(usuariosStats.ContainsKey("Doctores") ? usuariosStats["Doctores"] : 0),
+                    @(usuariosStats.ContainsKey("Administradores") ? usuariosStats["Administradores"] : 0)
+                ],
+                backgroundColor: [
+                    '#3b82f6',
+                    '#10b981',
+                    '#f59e0b'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+    
+    // Gráfico de Estado de Reportes
+    var ctxReports = document.getElementById('reportsChart').getContext('2d');
+    var reportsChart = new Chart(ctxReports, {
+        type: 'pie',
+        data: {
+            labels: ['Pendientes', 'En Revisión', 'Revisados', 'Cerrados'],
+            datasets: [{
+                data: [
+                    @(reportesStats.ContainsKey("Pendientes") ? reportesStats["Pendientes"] : 0),
+                    @(reportesStats.ContainsKey("EnRevision") ? reportesStats["EnRevision"] : 0),
+                    @(reportesStats.ContainsKey("Revisados") ? reportesStats["Revisados"] : 0),
+                    @(reportesStats.ContainsKey("Cerrados") ? reportesStats["Cerrados"] : 0)
+                ],
+                backgroundColor: [
+                    '#f59e0b',
+                    '#3b82f6',
+                    '#10b981',
+                    '#6b7280'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+}
+

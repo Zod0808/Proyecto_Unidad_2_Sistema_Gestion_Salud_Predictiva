@@ -1,0 +1,112 @@
+# Docker Compose para Desarrollo
+# Solo MongoDB, Mongo Express y AI Services
+# ASP.NET MVC se ejecuta localmente en Visual Studio/IIS
+
+services:
+  # Base de datos MongoDB
+  mongodb:
+    image: mongo:6.0
+    container_name: respicare-mongodb-dev
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: respicare
+    volumes:
+      - mongodb_data_dev:/data/db
+      - ./mongodb/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - respicare-network-dev
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # MongoDB Express (UI para administrar MongoDB)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: respicare-mongo-express-dev
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:password123@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - respicare-network-dev
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Servicios de IA (Python FastAPI)
+  ai-services:
+    build:
+      context: ./ai-services
+      dockerfile: dockerfile
+    container_name: respicare-ai-dev
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: 1
+      DATABASE_URL: mongodb://admin:password123@mongodb:27017/respicare?authSource=admin
+      MODEL_PATH: /app/models
+      LOG_LEVEL: DEBUG
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    volumes:
+      - ./ai-services:/app
+      - ai_models_dev:/app/models
+      - ai_cache_dev:/app/cache
+      - ai_logs_dev:/app/logs
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - respicare-network-dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  mongodb_data_dev:
+    driver: local
+  ai_models_dev:
+    driver: local
+  ai_cache_dev:
+    driver: local
+  ai_logs_dev:
+    driver: local
+
+networks:
+  respicare-network-dev:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16

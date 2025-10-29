@@ -1,0 +1,40 @@
+@{
+    ViewBag.Title = "Detalle de Cita";
+    Layout = "~/Views/Share/_Layout.cshtml";
+}
+
+<div class="row mt-4">
+    <div class="col-md-8 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <i class="bi bi-calendar-event"></i> Detalle de Cita
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">Paciente</dt>
+                    <dd class="col-sm-8">Juan Pérez</dd>
+                    <dt class="col-sm-4">Especialidad</dt>
+                    <dd class="col-sm-8">Cardiología</dd>
+                    <dt class="col-sm-4">Fecha y Hora</dt>
+                    <dd class="col-sm-8">12/06/2024 10:30</dd>
+                    <dt class="col-sm-4">Estado</dt>
+                    <dd class="col-sm-8"><span class="badge bg-warning text-dark">Programada</span></dd>
+                    <dt class="col-sm-4">Motivo</dt>
+                    <dd class="col-sm-8">Chequeo</dd>
+                    <dt class="col-sm-4">Diagnóstico</dt>
+                    <dd class="col-sm-8">Pendiente</dd>
+                    <dt class="col-sm-4">Tratamiento</dt>
+                    <dd class="col-sm-8">Pendiente</dd>
+                </dl>
+                <hr>
+                <h5>Chat IA exportado</h5>
+                <div class="bg-light p-3 rounded">
+                    <strong>Paciente:</strong> Tengo dolor de cabeza y fiebre.<br>
+                    <strong>IA:</strong> ¿Desde cuándo presenta los síntomas?<br>
+                    <strong>Paciente:</strong> Desde hace 2 días.<br>
+                    <strong>IA:</strong> Nivel de urgencia estimado: <span class="badge bg-warning text-dark">2 - Moderado</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

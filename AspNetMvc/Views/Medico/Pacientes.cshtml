@@ -1,0 +1,50 @@
+@{
+    ViewBag.Title = "Pacientes Atendidos";
+    Layout = "~/Views/Share/_Layout.cshtml";
+}
+
+<div class="row mt-4">
+    <div class="col-md-10 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-people"></i> Pacientes Atendidos
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Fecha Última Cita</th>
+                            <th>Especialidad</th>
+                            <th>Diagnóstico</th>
+                            <th>Historial</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Juan Pérez</td>
+                            <td>12/06/2024</td>
+                            <td>Cardiología</td>
+                            <td>Hipertensión</td>
+                            <td><button class="btn btn-outline-info btn-sm" disabled>Ver historial</button></td>
+                        </tr>
+                        <tr>
+                            <td>María López</td>
+                            <td>05/06/2024</td>
+                            <td>Medicina General</td>
+                            <td>Gripe</td>
+                            <td><button class="btn btn-outline-info btn-sm" disabled>Ver historial</button></td>
+                        </tr>
+                        <tr>
+                            <td>Carlos Ruiz</td>
+                            <td>28/05/2024</td>
+                            <td>Dermatología</td>
+                            <td>Dermatitis</td>
+                            <td><button class="btn btn-outline-info btn-sm" disabled>Ver historial</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

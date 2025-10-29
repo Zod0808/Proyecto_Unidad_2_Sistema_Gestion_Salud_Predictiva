@@ -1,0 +1,173 @@
+@model List<Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReporteSintomas>
+@{
+    ViewBag.Title = "Reportes de Síntomas";
+    Layout = "~/Views/Share/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1><i class="fas fa-notes-medical"></i> Reportes de Síntomas</h1>
+        <p class="text-muted">Gestión de reportes de síntomas con análisis de IA</p>
+        <hr />
+    </div>
+</div>
+
+<!-- Acciones -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <a href="@Url.Action("Create")" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nuevo Reporte
+        </a>
+        <a href="@Url.Action("Urgentes")" class="btn btn-danger">
+            <i class="fas fa-exclamation-triangle"></i> Ver Urgentes
+        </a>
+        <a href="@Url.Action("Estadisticas")" class="btn btn-info">
+            <i class="fas fa-chart-bar"></i> Estadísticas
+        </a>
+    </div>
+    <div class="col-md-6 text-end">
+        <form method="get" action="@Url.Action("Index")" class="d-inline">
+            <div class="input-group" style="max-width: 400px; float: right;">
+                <input type="text" name="q" class="form-control" placeholder="Buscar..." />
+                <button type="submit" class="btn btn-secondary">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de Reportes -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-list"></i> Lista de Reportes (@(Model?.Count ?? 0))
+            </div>
+            <div class="card-body">
+                @if (Model != null && Model.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Paciente</th>
+                                    <th>Edad</th>
+                                    <th>Síntomas</th>
+                                    <th>Estado</th>
+                                    <th>IA</th>
+                                    <th>Urgencia</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var reporte in Model)
+                                {
+                                    <tr>
+                                        <td>@reporte.ReportedAt.ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            <strong>@reporte.PatientName</strong><br/>
+                                            <small class="text-muted">@reporte.Gender</small>
+                                        </td>
+                                        <td>@reporte.Age años</td>
+                                        <td>
+                                            <span class="badge bg-secondary">@reporte.SymptomsCount síntomas</span>
+                                            @if (reporte.HasLocation)
+                                            {
+                                                <span class="badge bg-info">
+                                                    <i class="fas fa-map-marker-alt"></i>
+                                                </span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @switch (reporte.Status)
+                                            {
+                                                case Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReportStatus.Pending:
+                                                    <span class="badge bg-warning">@reporte.StatusText</span>
+                                                    break;
+                                                case Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReportStatus.InReview:
+                                                    <span class="badge bg-primary">@reporte.StatusText</span>
+                                                    break;
+                                                case Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReportStatus.Reviewed:
+                                                    <span class="badge bg-success">@reporte.StatusText</span>
+                                                    break;
+                                                case Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReportStatus.Closed:
+                                                    <span class="badge bg-secondary">@reporte.StatusText</span>
+                                                    break;
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (reporte.HasAIAnalysis)
+                                            {
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-robot"></i> Analizado
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary">Sin análisis</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (reporte.IsUrgent)
+                                            {
+                                                <span class="badge bg-danger">
+                                                    <i class="fas fa-exclamation-circle"></i> Urgente
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-success">Normal</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="@Url.Action("Details", new { id = reporte.Id })" 
+                                                   class="btn btn-sm btn-info" title="Ver Detalles">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="@Url.Action("Edit", new { id = reporte.Id })" 
+                                                   class="btn btn-sm btn-warning" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <a href="@Url.Action("Delete", new { id = reporte.Id })" 
+                                                   class="btn btn-sm btn-danger" title="Eliminar">
+                                                    <i class="fas fa-trash"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> No hay reportes registrados.
+                        <a href="@Url.Action("Create")" class="alert-link">Crear el primer reporte</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+<script>
+    $(document).ready(function() {
+        // Inicializar tooltips
+        $('[title]').tooltip();
+        
+        // Confirmación antes de eliminar
+        $('a[href*="Delete"]').on('click', function(e) {
+            if (!confirm('¿Está seguro que desea eliminar este reporte?')) {
+                e.preventDefault();
+            }
+        });
+    });
+</script>
+}
+

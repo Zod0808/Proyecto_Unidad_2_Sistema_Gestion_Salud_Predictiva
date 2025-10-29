@@ -1,0 +1,40 @@
+@{
+    ViewBag.Title = "Reservar Cita";
+    Layout = "~/Views/Share/_Layout.cshtml";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4>Reservar Cita</h4>
+                </div>
+                <div class="card-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="especialidad" class="form-label">Especialidad</label>
+                            <select class="form-select" id="especialidad" name="especialidad">
+                                <option>Medicina General</option>
+                                <option>Cardiología</option>
+                                <option>Dermatología</option>
+                                <option>Pediatría</option>
+                                <option>Ginecología</option>
+                                <option>Traumatología</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fecha" class="form-label">Fecha</label>
+                            <input type="date" class="form-control" id="fecha" name="fecha">
+                        </div>
+                        <div class="mb-3">
+                            <label for="motivo" class="form-label">Motivo</label>
+                            <input type="text" class="form-control" id="motivo" name="motivo" placeholder="Motivo de la consulta">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Reservar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

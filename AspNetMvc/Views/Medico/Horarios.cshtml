@@ -1,0 +1,37 @@
+@{
+    ViewBag.Title = "Horarios de Trabajo";
+    Layout = "~/Views/Share/_Layout.cshtml";
+}
+
+<div class="row mt-4">
+    <div class="col-md-6 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-clock"></i> Configuración de Horarios
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="horarioInicio" class="form-label">Hora de inicio</label>
+                        <input type="time" class="form-control" id="horarioInicio" value="08:00" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="horarioFin" class="form-label">Hora de fin</label>
+                        <input type="time" class="form-control" id="horarioFin" value="16:00" disabled>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dias" class="form-label">Días de trabajo</label>
+                        <select class="form-select" id="dias" multiple disabled>
+                            <option selected>Lunes</option>
+                            <option selected>Martes</option>
+                            <option selected>Miércoles</option>
+                            <option selected>Jueves</option>
+                            <option selected>Viernes</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-primary" disabled>Guardar cambios</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

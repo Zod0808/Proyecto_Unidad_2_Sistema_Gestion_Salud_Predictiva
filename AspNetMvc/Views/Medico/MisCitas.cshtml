@@ -1,0 +1,60 @@
+@{
+    ViewBag.Title = "Mis Citas Médico";
+    Layout = "~/Views/Share/_Layout.cshtml";
+}
+
+<div class="row mt-4">
+    <div class="col-md-10 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <i class="bi bi-calendar-check"></i> Agenda Médica
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Hora</th>
+                            <th>Paciente</th>
+                            <th>Especialidad</th>
+                            <th>Estado</th>
+                            <th>Motivo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>09:00</td>
+                            <td>Juan Pérez</td>
+                            <td>Cardiología</td>
+                            <td><span class="badge bg-warning text-dark">Programada</span></td>
+                            <td>Chequeo</td>
+                            <td>
+                                <button class="btn btn-outline-info btn-sm" disabled>Ver detalle</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>10:30</td>
+                            <td>María López</td>
+                            <td>Medicina General</td>
+                            <td><span class="badge bg-success">Confirmada</span></td>
+                            <td>Control anual</td>
+                            <td>
+                                <button class="btn btn-outline-info btn-sm" disabled>Ver detalle</button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>12:00</td>
+                            <td>Carlos Ruiz</td>
+                            <td>Dermatología</td>
+                            <td><span class="badge bg-info text-dark">En Curso</span></td>
+                            <td>Consulta de piel</td>
+                            <td>
+                                <button class="btn btn-outline-info btn-sm" disabled>Ver detalle</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

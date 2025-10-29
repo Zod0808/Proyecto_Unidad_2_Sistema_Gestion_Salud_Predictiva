@@ -1,0 +1,54 @@
+@{
+    ViewBag.Title = "Historial Médico";
+    Layout = "~/Views/Share/_Layout.cshtml";
+}
+
+<div class="row mt-4">
+    <div class="col-md-10 mx-auto">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <i class="bi bi-file-medical"></i> Historial Médico
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Médico</th>
+                            <th>Diagnóstico</th>
+                            <th>Tratamiento</th>
+                            <th>Observaciones</th>
+                            <th>Receta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>05/06/2024</td>
+                            <td>Dr. María López</td>
+                            <td>Hipertensión</td>
+                            <td>Medicamentos antihipertensivos</td>
+                            <td>Control mensual</td>
+                            <td>Receta.pdf</td>
+                        </tr>
+                        <tr>
+                            <td>12/05/2024</td>
+                            <td>Dr. Juan Pérez</td>
+                            <td>Gripe</td>
+                            <td>Paracetamol</td>
+                            <td>Reposo en casa</td>
+                            <td>Receta.pdf</td>
+                        </tr>
+                        <tr>
+                            <td>28/04/2024</td>
+                            <td>Dr. Carlos Ruiz</td>
+                            <td>Dermatitis</td>
+                            <td>Crema tópica</td>
+                            <td>Evitar exposición solar</td>
+                            <td>Receta.pdf</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

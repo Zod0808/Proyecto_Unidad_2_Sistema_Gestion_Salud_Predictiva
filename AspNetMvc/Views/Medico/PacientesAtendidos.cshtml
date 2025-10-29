@@ -1,0 +1,53 @@
+@{
+    ViewBag.Title = "Pacientes Atendidos";
+    Layout = "~/Views/Share/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2><i class="bi bi-people"></i> Pacientes Atendidos</h2>
+            <p class="lead">Listado de pacientes que han sido atendidos por el médico.</p>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Fecha Última Consulta</th>
+                        <th>Especialidad</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Juan Pérez</td>
+                        <td>10/06/2024</td>
+                        <td>Cardiología</td>
+                        <td>
+                            <a href="#" class="btn btn-outline-info btn-sm" disabled>Ver Historial</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>María López</td>
+                        <td>08/06/2024</td>
+                        <td>Medicina General</td>
+                        <td>
+                            <a href="#" class="btn btn-outline-info btn-sm" disabled>Ver Historial</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Carlos Ruiz</td>
+                        <td>05/06/2024</td>
+                        <td>Dermatología</td>
+                        <td>
+                            <a href="#" class="btn btn-outline-info btn-sm" disabled>Ver Historial</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
