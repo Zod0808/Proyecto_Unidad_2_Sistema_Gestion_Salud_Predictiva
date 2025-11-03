@@ -1,139 +1,108 @@
-using MongoDB.Driver;
-using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Helpers;
-using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models;
+using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Helpers;
+using MongoDB.Driver;
 
 namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Services
 {
-    /// <summary>
-    /// Servicio para gestionar reportes de síntomas
-    /// </summary>
     public class ReporteSintomasService
     {
-        private readonly IMongoCollection<ReporteSintomas> _reportes;
-        private readonly AIService _aiService;
+        private readonly IMongoCollection<ReporteSintomas> _reportesCollection;
 
         public ReporteSintomasService()
         {
-            _reportes = MongoDBHelper.GetCollection<ReporteSintomas>("symptomreports");
-            _aiService = new AIService();
+            _reportesCollection = MongoDBHelper.GetCollection<ReporteSintomas>("symptomreports");
         }
 
         /// <summary>
-        /// Obtiene todos los reportes
+        /// Crea un nuevo reporte de síntomas
         /// </summary>
-        public async Task<List<ReporteSintomas>> ObtenerTodos()
+        public async Task<ReporteSintomas> CrearReporte(ReporteSintomas reporte)
         {
-            return await _reportes.Find(_ => true).SortByDescending(r => r.ReportedAt).ToListAsync();
+            if (_reportesCollection == null)
+            {
+                throw new Exception("No se pudo conectar a la base de datos");
+            }
+
+            // Calcular nivel de urgencia automáticamente
+            reporte.NivelUrgencia = CalcularNivelUrgencia(reporte);
+            
+            // Generar recomendación basada en síntomas
+            reporte.RecomendacionIA = GenerarRecomendacion(reporte);
+            
+            await _reportesCollection.InsertOneAsync(reporte);
+            return reporte;
+        }
+
+        /// <summary>
+        /// Obtiene todos los reportes de un paciente
+        /// </summary>
+        public async Task<List<ReporteSintomas>> ObtenerPorPaciente(string pacienteId)
+        {
+            if (_reportesCollection == null)
+            {
+                return new List<ReporteSintomas>();
+            }
+
+            var filter = Builders<ReporteSintomas>.Filter.Eq(r => r.PacienteId, pacienteId);
+            var reportes = await _reportesCollection
+                .Find(filter)
+                .SortByDescending(r => r.FechaReporte)
+                .ToListAsync();
+            
+            return reportes;
         }
 
         /// <summary>
         /// Obtiene un reporte por ID
         /// </summary>
-        public async Task<ReporteSintomas> ObtenerPorId(string id)
+        public async Task<ReporteSintomas> ObtenerPorId(string reporteId)
         {
-            return await _reportes.Find(r => r.Id == id).FirstOrDefaultAsync();
-        }
-
-        /// <summary>
-        /// Obtiene reportes por usuario
-        /// </summary>
-        public async Task<List<ReporteSintomas>> ObtenerPorUsuario(string userId)
-        {
-            return await _reportes.Find(r => r.UserId == userId)
-                                 .SortByDescending(r => r.ReportedAt)
-                                 .ToListAsync();
-        }
-
-        /// <summary>
-        /// Crea un nuevo reporte con análisis de IA
-        /// </summary>
-        public async Task<ReporteSintomas> Crear(ReporteSintomas reporte)
-        {
-            reporte.CreatedAt = DateTime.Now;
-            reporte.UpdatedAt = DateTime.Now;
-            reporte.ReportedAt = DateTime.Now;
-            reporte.Status = ReportStatus.Pending;
-
-            // Intentar analizar con IA
-            try
+            if (_reportesCollection == null)
             {
-                var aiRequest = new AIAnalysisRequest
-                {
-                    PatientName = reporte.PatientName,
-                    Age = reporte.Age,
-                    Gender = reporte.Gender,
-                    Symptoms = reporte.Symptoms.Select(s => new SymptomsRequest
-                    {
-                        Name = s,
-                        Severity = "moderate", // Default
-                        Duration = "unknown",
-                        Description = ""
-                    }).ToList(),
-                    AdditionalNotes = reporte.AdditionalNotes,
-                    Location = reporte.Location != null ? new LocationRequest
-                    {
-                        Latitude = reporte.Location.Latitude,
-                        Longitude = reporte.Location.Longitude,
-                        Address = reporte.Location.Address
-                    } : null
-                };
-
-                var aiResponse = await _aiService.AnalyzarSintomas(aiRequest);
-
-                // Convertir respuesta de IA a modelo interno
-                reporte.AIAnalysis = ConvertirRespuestaIA(aiResponse);
-                reporte.Status = ReportStatus.InReview;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al analizar con IA: {ex.Message}");
-                // Continuar sin análisis de IA
+                return null;
             }
 
-            await _reportes.InsertOneAsync(reporte);
-            return reporte;
+            var filter = Builders<ReporteSintomas>.Filter.Eq(r => r.Id, reporteId);
+            return await _reportesCollection.Find(filter).FirstOrDefaultAsync();
         }
 
         /// <summary>
-        /// Actualiza un reporte
+        /// Obtiene todos los reportes (para médicos/admin)
         /// </summary>
-        public async Task<bool> Actualizar(ReporteSintomas reporte)
+        public async Task<List<ReporteSintomas>> ObtenerTodos()
         {
-            reporte.UpdatedAt = DateTime.Now;
-            var result = await _reportes.ReplaceOneAsync(r => r.Id == reporte.Id, reporte);
-            return result.ModifiedCount > 0;
+            if (_reportesCollection == null)
+            {
+                return new List<ReporteSintomas>();
+            }
+
+            return await _reportesCollection
+                .Find(_ => true)
+                .SortByDescending(r => r.FechaReporte)
+                .Limit(100)
+                .ToListAsync();
         }
 
         /// <summary>
-        /// Elimina un reporte
-        /// </summary>
-        public async Task<bool> Eliminar(string id)
-        {
-            var result = await _reportes.DeleteOneAsync(r => r.Id == id);
-            return result.DeletedCount > 0;
-        }
-
-        /// <summary>
-        /// Obtiene reportes urgentes
+        /// Obtiene reportes urgentes (nivel 4-5)
         /// </summary>
         public async Task<List<ReporteSintomas>> ObtenerUrgentes()
         {
-            var reportes = await ObtenerTodos();
-            return reportes.Where(r => r.IsUrgent).ToList();
-        }
+            if (_reportesCollection == null)
+            {
+                return new List<ReporteSintomas>();
+            }
 
-        /// <summary>
-        /// Obtiene reportes por estado
-        /// </summary>
-        public async Task<List<ReporteSintomas>> ObtenerPorEstado(ReportStatus estado)
-        {
-            return await _reportes.Find(r => r.Status == estado)
-                                 .SortByDescending(r => r.ReportedAt)
-                                 .ToListAsync();
+            var filter = Builders<ReporteSintomas>.Filter.Gte(r => r.NivelUrgencia, 4);
+            return await _reportesCollection
+                .Find(filter)
+                .SortByDescending(r => r.FechaReporte)
+                .Limit(50)
+                .ToListAsync();
         }
 
         /// <summary>
@@ -141,102 +110,189 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Services
         /// </summary>
         public async Task<List<ReporteSintomas>> ObtenerPorFechas(DateTime fechaInicio, DateTime fechaFin)
         {
-            return await _reportes.Find(r => r.ReportedAt >= fechaInicio && r.ReportedAt <= fechaFin)
-                                 .SortByDescending(r => r.ReportedAt)
-                                 .ToListAsync();
+            if (_reportesCollection == null)
+            {
+                return new List<ReporteSintomas>();
+            }
+
+            var filter = Builders<ReporteSintomas>.Filter.And(
+                Builders<ReporteSintomas>.Filter.Gte(r => r.FechaReporte, fechaInicio),
+                Builders<ReporteSintomas>.Filter.Lte(r => r.FechaReporte, fechaFin)
+            );
+
+            return await _reportesCollection
+                .Find(filter)
+                .SortByDescending(r => r.FechaReporte)
+                .ToListAsync();
         }
 
         /// <summary>
-        /// Obtiene estadísticas de reportes
+        /// Actualiza el estado de un reporte
+        /// </summary>
+        public async Task ActualizarEstado(string reporteId, string nuevoEstado)
+        {
+            if (_reportesCollection == null)
+            {
+                throw new Exception("No se pudo conectar a la base de datos");
+            }
+
+            var filter = Builders<ReporteSintomas>.Filter.Eq(r => r.Id, reporteId);
+            var update = Builders<ReporteSintomas>.Update
+                .Set(r => r.Estado, nuevoEstado)
+                .Set(r => r.Procesado, true);
+            
+            await _reportesCollection.UpdateOneAsync(filter, update);
+        }
+
+        /// <summary>
+        /// Calcula el nivel de urgencia basado en los síntomas
+        /// </summary>
+        private int CalcularNivelUrgencia(ReporteSintomas reporte)
+        {
+            int puntaje = 0;
+
+            foreach (var sintoma in reporte.Sintomas)
+            {
+                // Síntomas graves aumentan urgencia
+                if (sintoma.Nombre.Contains("Dificultad para respirar") || 
+                    sintoma.Nombre.Contains("Dolor de pecho"))
+                {
+                    puntaje += 3;
+                }
+                else if (sintoma.Nombre.Contains("Fiebre") || 
+                         sintoma.Nombre.Contains("Falta de aire"))
+                {
+                    puntaje += 2;
+                }
+                else
+                {
+                    puntaje += 1;
+                }
+
+                // Gravedad aumenta urgencia
+                if (sintoma.Gravedad == "Grave")
+                {
+                    puntaje += 2;
+                }
+                else if (sintoma.Gravedad == "Moderado")
+                {
+                    puntaje += 1;
+                }
+
+                // Duración prolongada aumenta urgencia
+                if (sintoma.Duracion > 7)
+                {
+                    puntaje += 1;
+                }
+            }
+
+            // Convertir puntaje a nivel 1-5
+            if (puntaje >= 10) return 5; // Crítico
+            if (puntaje >= 7) return 4;  // Urgente
+            if (puntaje >= 4) return 3;  // Moderado-Alto
+            if (puntaje >= 2) return 2;  // Moderado
+            return 1; // Leve
+        }
+
+        /// <summary>
+        /// Genera recomendación basada en síntomas
+        /// </summary>
+        private string GenerarRecomendacion(ReporteSintomas reporte)
+        {
+            var sintomasNombres = reporte.Sintomas.Select(s => s.Nombre.ToLower()).ToList();
+            
+            // Casos críticos
+            if (sintomasNombres.Any(s => s.Contains("dificultad para respirar") && reporte.Sintomas.Any(si => si.Gravedad == "Grave")))
+            {
+                return "🚨 URGENTE: Dificultad respiratoria grave detectada. Acuda a URGENCIAS inmediatamente o llame al 911.";
+            }
+
+            if (sintomasNombres.Any(s => s.Contains("dolor de pecho")) && 
+                reporte.Sintomas.Any(si => si.Gravedad == "Grave" || si.Gravedad == "Moderado"))
+            {
+                return "⚠️ IMPORTANTE: Dolor de pecho detectado. Acuda a urgencias para evaluación médica inmediata.";
+            }
+
+            // Fiebre alta
+            if (sintomasNombres.Any(s => s.Contains("fiebre")))
+            {
+                var sintomaFiebre = reporte.Sintomas.FirstOrDefault(s => s.Nombre.ToLower().Contains("fiebre"));
+                if (sintomaFiebre?.Gravedad == "Grave" || sintomaFiebre?.Duracion > 3)
+                {
+                    return "🌡️ Fiebre persistente o alta detectada. Programe una cita médica en las próximas 24 horas. Manténgase hidratado y monitoree su temperatura.";
+                }
+            }
+
+            // Síntomas respiratorios múltiples
+            if (reporte.Sintomas.Count >= 3 && sintomasNombres.Any(s => s.Contains("tos") || s.Contains("respirar")))
+            {
+                return "🩺 Múltiples síntomas respiratorios detectados. Programe una consulta médica en 24-48 horas. Mientras tanto, descanse, hidrátese y evite contacto cercano con otras personas.";
+            }
+
+            // Recomendación general
+            return "📋 Síntomas registrados. Si los síntomas empeoran o no mejoran en 2-3 días, programe una consulta médica. Descanse, hidrátese bien y monitoree su estado.";
+        }
+
+        /// <summary>
+        /// Obtiene estadísticas de reportes por ubicación
+        /// </summary>
+        public async Task<Dictionary<string, int>> ObtenerEstadisticasPorUbicacion()
+        {
+            if (_reportesCollection == null)
+            {
+                return new Dictionary<string, int>();
+            }
+
+            var reportes = await _reportesCollection.Find(_ => true).ToListAsync();
+            
+            return reportes
+                .Where(r => !string.IsNullOrEmpty(r.Ubicacion))
+                .GroupBy(r => r.Ubicacion)
+                .ToDictionary(g => g.Key, g => g.Count());
+        }
+
+        /// <summary>
+        /// Obtiene los síntomas más reportados
+        /// </summary>
+        public async Task<Dictionary<string, int>> ObtenerSintomasMasReportados()
+        {
+            if (_reportesCollection == null)
+            {
+                return new Dictionary<string, int>();
+            }
+
+            var reportes = await _reportesCollection.Find(_ => true).ToListAsync();
+            
+            var sintomas = reportes
+                .SelectMany(r => r.Sintomas)
+                .GroupBy(s => s.Nombre)
+                .OrderByDescending(g => g.Count())
+                .Take(10)
+                .ToDictionary(g => g.Key, g => g.Count());
+            
+            return sintomas;
+        }
+
+        /// <summary>
+        /// Obtiene estadísticas generales de reportes
         /// </summary>
         public async Task<Dictionary<string, object>> ObtenerEstadisticas()
         {
-            var reportes = await ObtenerTodos();
+            if (_reportesCollection == null)
+            {
+                return new Dictionary<string, object>();
+            }
 
+            var reportes = await ObtenerTodos();
+            
             return new Dictionary<string, object>
             {
                 { "Total", reportes.Count },
-                { "Urgentes", reportes.Count(r => r.IsUrgent) },
-                { "Pendientes", reportes.Count(r => r.Status == ReportStatus.Pending) },
-                { "EnRevision", reportes.Count(r => r.Status == ReportStatus.InReview) },
-                { "Revisados", reportes.Count(r => r.Status == ReportStatus.Reviewed) },
-                { "Cerrados", reportes.Count(r => r.Status == ReportStatus.Closed) },
-                { "ConAnalisisIA", reportes.Count(r => r.HasAIAnalysis) },
-                { "ConUbicacion", reportes.Count(r => r.HasLocation) },
-                { "PromedioSintomas", reportes.Any() ? reportes.Average(r => r.SymptomsCount) : 0 },
-                { "SintomasMasComunes", ObtenerSintomasMasComunes(reportes, 10) }
+                { "Urgentes", reportes.Count(r => r.NivelUrgencia >= 4) },
+                { "PorFechas", reportes.GroupBy(r => r.FechaReporte.Date).ToDictionary(g => g.Key.ToString("yyyy-MM-dd"), g => g.Count()) },
+                { "SintomasMasReportados", await ObtenerSintomasMasReportados() },
+                { "EstadisticasUbicacion", await ObtenerEstadisticasPorUbicacion() }
             };
-        }
-
-        /// <summary>
-        /// Obtiene los síntomas más comunes
-        /// </summary>
-        private List<dynamic> ObtenerSintomasMasComunes(List<ReporteSintomas> reportes, int cantidad)
-        {
-            return reportes.SelectMany(r => r.Symptoms)
-                          .GroupBy(s => s)
-                          .Select(g => new { Sintoma = g.Key, Cantidad = g.Count() })
-                          .OrderByDescending(x => x.Cantidad)
-                          .Take(cantidad)
-                          .Cast<dynamic>()
-                          .ToList();
-        }
-
-        /// <summary>
-        /// Cambia el estado de un reporte
-        /// </summary>
-        public async Task<bool> CambiarEstado(string id, ReportStatus nuevoEstado)
-        {
-            var reporte = await ObtenerPorId(id);
-            if (reporte == null) return false;
-
-            reporte.Status = nuevoEstado;
-            reporte.UpdatedAt = DateTime.Now;
-
-            return await Actualizar(reporte);
-        }
-
-        /// <summary>
-        /// Convierte la respuesta de IA al modelo interno
-        /// </summary>
-        private AnalisisIA ConvertirRespuestaIA(AIAnalysisResponse aiResponse)
-        {
-            var analisis = new AnalisisIA
-            {
-                MedicalHistoryId = aiResponse.AnalysisId,
-                Confidence = aiResponse.Confidence,
-                Urgency = ParseUrgency(aiResponse.Urgency),
-                Timestamp = DateTime.TryParse(aiResponse.Timestamp, out DateTime timestamp) ? timestamp : DateTime.Now,
-                PossibleDiagnoses = aiResponse.PossibleDiagnoses.Select(d => new DiagnosticoPosible
-                {
-                    Condition = d.Condition,
-                    Probability = d.Probability,
-                    Recommendations = d.Recommendations ?? new List<string>()
-                }).ToList()
-            };
-
-            return analisis;
-        }
-
-        /// <summary>
-        /// Convierte string de urgencia a enum
-        /// </summary>
-        private UrgencyLevel ParseUrgency(string urgency)
-        {
-            switch (urgency?.ToLower())
-            {
-                case "low":
-                    return UrgencyLevel.Low;
-                case "medium":
-                    return UrgencyLevel.Medium;
-                case "high":
-                    return UrgencyLevel.High;
-                case "critical":
-                    return UrgencyLevel.Critical;
-                default:
-                    return UrgencyLevel.Low;
-            }
         }
     }
 }
-

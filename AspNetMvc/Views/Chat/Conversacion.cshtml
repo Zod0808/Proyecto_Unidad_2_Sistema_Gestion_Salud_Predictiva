@@ -1,0 +1,592 @@
+@model Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ConversacionChat
+
+@{
+    ViewBag.Title = "Chat Médico IA";
+    Layout = "~/Views/Shared/_LayoutPaciente.cshtml";
+}
+
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+    }
+
+    .chat-page-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .chat-wrapper {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Header del Chat */
+    .chat-header {
+        background: linear-gradient(135deg, #0084ff 0%, #0063d1 100%);
+        color: white;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .bot-avatar {
+        width: 44px;
+        height: 44px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #0084ff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .bot-info h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+    }
+
+    .bot-status {
+        font-size: 12px;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-online {
+        width: 8px;
+        height: 8px;
+        background: #4ade80;
+        border-radius: 50%;
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.3);
+        animation: pulse-dot 2s infinite;
+    }
+
+    @@keyframes pulse-dot {
+        0%, 100% { 
+            transform: scale(1); 
+            opacity: 1; 
+        }
+        50% { 
+            transform: scale(1.1); 
+            opacity: 0.8; 
+        }
+    }
+
+    /* Área de Mensajes */
+    .chat-messages {
+        flex: 1;
+        padding: 24px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        background-image: 
+            linear-gradient(90deg, rgba(200, 200, 200, 0.05) 1px, transparent 1px),
+            linear-gradient(rgba(200, 200, 200, 0.05) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+
+    .message {
+        display: flex;
+        margin-bottom: 16px;
+        animation: message-appear 0.3s ease-out;
+    }
+
+    @@keyframes message-appear {
+        from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .message.user {
+        justify-content: flex-end;
+    }
+
+    .message.bot {
+        justify-content: flex-start;
+    }
+
+    .message-bubble {
+        max-width: 65%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+        line-height: 1.5;
+    }
+
+    .message.user .message-bubble {
+        background: #0084ff;
+        color: white;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 132, 255, 0.3);
+    }
+
+    .message.bot .message-bubble {
+        background: white;
+        color: #1c1e21;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e4e6eb;
+    }
+
+    .message-time {
+        font-size: 11px;
+        margin-top: 6px;
+        opacity: 0.7;
+        text-align: right;
+    }
+
+    .message.bot .message-time {
+        color: #65676b;
+    }
+
+    .message.user .message-time {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    /* Indicador de escritura */
+    .typing-indicator {
+        display: none;
+        padding: 12px 18px;
+        background: white;
+        border-radius: 18px;
+        border-bottom-left-radius: 4px;
+        width: fit-content;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e4e6eb;
+    }
+
+    .typing-indicator.show {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #90949c;
+        animation: typing-bounce 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @@keyframes typing-bounce {
+        0%, 60%, 100% { 
+            transform: translateY(0); 
+        }
+        30% { 
+            transform: translateY(-8px); 
+        }
+    }
+
+    /* Input de Mensaje */
+    .chat-input-area {
+        padding: 16px 24px;
+        background: white;
+        border-top: 1px solid #e4e6eb;
+    }
+
+    .chat-input-wrapper {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .chat-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #ccd0d5;
+        border-radius: 20px;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.2s;
+        resize: none;
+        font-family: inherit;
+        line-height: 1.4;
+        max-height: 100px;
+    }
+
+    .chat-input:focus {
+        border-color: #0084ff;
+        box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.1);
+    }
+
+    .send-button {
+        width: 40px;
+        height: 40px;
+        background: #0084ff;
+        border: none;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .send-button:hover {
+        background: #0063d1;
+        transform: scale(1.05);
+    }
+
+    .send-button:active {
+        transform: scale(0.95);
+    }
+
+    .send-button:disabled {
+        background: #e4e6eb;
+        cursor: not-allowed;
+    }
+
+    .send-button svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Estado vacío */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #65676b;
+        text-align: center;
+        padding: 40px;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        color: #e4e6eb;
+        margin-bottom: 16px;
+    }
+
+    .empty-state-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #1c1e21;
+    }
+
+    .empty-state-text {
+        font-size: 14px;
+        color: #65676b;
+    }
+
+    /* Scrollbar personalizado */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #ccd0d5;
+        border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #b0b3b8;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .chat-wrapper {
+            height: calc(100vh - 150px);
+            border-radius: 0;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+        }
+
+        .chat-page-container {
+            padding: 0;
+        }
+    }
+
+    /* Botón cerrar conversación */
+    .btn-close-chat {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-close-chat:hover {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .alert-chat-closed {
+        text-align: center;
+        padding: 12px;
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        color: #856404;
+        margin: 0;
+    }
+</style>
+
+<div class="chat-page-container">
+    <div class="chat-wrapper">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <div class="bot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="bot-info">
+                    <h3>Asistente Médico Virtual</h3>
+                    <div class="bot-status">
+                        <span class="status-online"></span>
+                        <span>En línea - Siempre disponible</span>
+                    </div>
+                </div>
+            </div>
+            @if (Model.IsActive)
+            {
+                <form action="@Url.Action("Cerrar", "Chat", new { id = Model.Id })" method="post" style="margin: 0;">
+                    <button type="submit" class="btn-close-chat">
+                        <i class="fas fa-times"></i>
+                        Cerrar
+                    </button>
+                </form>
+            }
+        </div>
+
+        <!-- Mensajes -->
+        <div class="chat-messages" id="chatMessages">
+            @if (Model.Messages != null && Model.Messages.Any())
+            {
+                foreach (var mensaje in Model.Messages)
+                {
+                    <div class="message @(mensaje.Role == MessageRole.User ? "user" : "bot")">
+                        <div class="message-bubble">
+                            @mensaje.Content
+                            <div class="message-time">@mensaje.Timestamp.ToString("HH:mm")</div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="empty-state-title">¡Hola! Soy tu asistente médico</div>
+                    <div class="empty-state-text">
+                        Puedes preguntarme sobre síntomas, enfermedades respiratorias<br>
+                        o cualquier consulta médica. Estoy aquí para ayudarte.
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Input -->
+        @if (Model.IsActive)
+        {
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <input type="text" 
+                           class="chat-input" 
+                           id="mensajeInput" 
+                           placeholder="Escribe tu mensaje..."
+                           autocomplete="off">
+                    <button class="send-button" id="btnEnviar" type="button">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="chat-input-area">
+                <div class="alert-chat-closed">
+                    <i class="fas fa-lock"></i> Esta conversación ha sido cerrada
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.IsActive)
+{
+    @section scripts {
+        <script>
+            var chatId = '@Model.Id';
+            
+            $(document).ready(function() {
+                // Configurar charset UTF-8
+                $.ajaxSetup({
+                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                    scriptCharset: 'utf-8',
+                    accepts: {
+                        text: 'text/plain; charset=UTF-8',
+                        json: 'application/json; charset=UTF-8'
+                    }
+                });
+                
+                // Scroll al final
+                scrollToBottom();
+                
+                // Focus en input
+                $('#mensajeInput').focus();
+                
+                // Enviar con Enter
+                $('#mensajeInput').on('keypress', function(e) {
+                    if (e.which === 13 && !e.shiftKey) {
+                        e.preventDefault();
+                        enviarMensaje();
+                    }
+                });
+                
+                // Enviar con botón
+                $('#btnEnviar').on('click', function() {
+                    enviarMensaje();
+                });
+            });
+            
+            function enviarMensaje() {
+                var mensaje = $('#mensajeInput').val().trim();
+                
+                if (mensaje === '') {
+                    return;
+                }
+                
+                // Agregar mensaje del usuario a la UI
+                agregarMensaje('user', mensaje);
+                
+                // Limpiar y deshabilitar input
+                $('#mensajeInput').val('').prop('disabled', true);
+                $('#btnEnviar').prop('disabled', true);
+                
+                // Mostrar indicador de escritura
+                mostrarEscribiendo(true);
+                
+                // Enviar al servidor
+                $.ajax({
+                    url: '@Url.Action("EnviarMensaje", "Chat")',
+                    type: 'POST',
+                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                    dataType: 'json',
+                    data: { 
+                        chatId: chatId, 
+                        mensaje: mensaje 
+                    },
+                    success: function(response) {
+                        mostrarEscribiendo(false);
+                        
+                        if (response.success) {
+                            agregarMensaje('bot', response.respuesta);
+                        } else {
+                            alert('Error: ' + (response.error || 'No se pudo enviar el mensaje'));
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        mostrarEscribiendo(false);
+                        console.error('Error AJAX:', status, error);
+                        alert('Error al enviar el mensaje. Por favor, intenta de nuevo.');
+                    },
+                    complete: function() {
+                        $('#mensajeInput').prop('disabled', false).focus();
+                        $('#btnEnviar').prop('disabled', false);
+                    }
+                });
+            }
+            
+            function agregarMensaje(tipo, contenido) {
+                // Eliminar estado vacío si existe
+                $('.empty-state').remove();
+                
+                // Crear mensaje
+                var hora = new Date().toLocaleTimeString('es-ES', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                var $mensaje = $('<div>')
+                    .addClass('message ' + tipo)
+                    .html(
+                        '<div class="message-bubble">' +
+                            $('<div>').text(contenido).html() + // Escape HTML
+                            '<div class="message-time">' + hora + '</div>' +
+                        '</div>'
+                    );
+                
+                $('#chatMessages').append($mensaje);
+                scrollToBottom();
+            }
+            
+            function mostrarEscribiendo(mostrar) {
+                if (mostrar) {
+                    if ($('#typingIndicator').length === 0) {
+                        var $typing = $('<div>')
+                            .attr('id', 'typingIndicator')
+                            .addClass('message bot')
+                            .html(
+                                '<div class="typing-indicator show">' +
+                                    '<span class="typing-dot"></span>' +
+                                    '<span class="typing-dot"></span>' +
+                                    '<span class="typing-dot"></span>' +
+                                '</div>'
+                            );
+                        $('#chatMessages').append($typing);
+                    }
+                } else {
+                    $('#typingIndicator').remove();
+                }
+                scrollToBottom();
+            }
+            
+            function scrollToBottom() {
+                var $messages = $('#chatMessages');
+                if ($messages.length) {
+                    $messages.scrollTop($messages[0].scrollHeight);
+                }
+            }
+        </script>
+    }
+}

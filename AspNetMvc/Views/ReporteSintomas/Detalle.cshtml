@@ -1,0 +1,409 @@
+@model Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReporteSintomas
+
+@{
+    ViewBag.Title = "Detalle del Reporte";
+    Layout = "~/Views/Shared/_LayoutPaciente.cshtml";
+}
+
+<style>
+    .detail-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .detail-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+    }
+
+    .detail-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px;
+    }
+
+    .detail-header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .back-link {
+        color: white;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+    }
+
+    .back-link:hover {
+        color: #e0e0e0;
+    }
+
+    .status-badge {
+        background: white;
+        color: #667eea;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .detail-title {
+        font-size: 28px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .detail-meta {
+        display: flex;
+        gap: 24px;
+        font-size: 14px;
+        opacity: 0.95;
+    }
+
+    .detail-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-body {
+        padding: 30px;
+    }
+
+    .urgency-alert {
+        padding: 20px;
+        border-radius: 12px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .urgency-alert.level-5 {
+        background: #fee;
+        border-left: 4px solid #dc3545;
+    }
+
+    .urgency-alert.level-4 {
+        background: #fff3cd;
+        border-left: 4px solid #fd7e14;
+    }
+
+    .urgency-alert.level-3 {
+        background: #fff8e1;
+        border-left: 4px solid #ffc107;
+    }
+
+    .urgency-alert.level-2 {
+        background: #d1f2eb;
+        border-left: 4px solid #20c997;
+    }
+
+    .urgency-alert.level-1 {
+        background: #cff4fc;
+        border-left: 4px solid #0dcaf0;
+    }
+
+    .urgency-icon {
+        font-size: 32px;
+    }
+
+    .urgency-alert.level-5 .urgency-icon { color: #dc3545; }
+    .urgency-alert.level-4 .urgency-icon { color: #fd7e14; }
+    .urgency-alert.level-3 .urgency-icon { color: #ffc107; }
+    .urgency-alert.level-2 .urgency-icon { color: #20c997; }
+    .urgency-alert.level-1 .urgency-icon { color: #0dcaf0; }
+
+    .urgency-content h4 {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .section {
+        margin-bottom: 32px;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #1c1e21;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e4e6eb;
+    }
+
+    .section-title i {
+        color: #667eea;
+    }
+
+    .symptoms-detailed {
+        display: grid;
+        gap: 16px;
+    }
+
+    .symptom-card {
+        background: #f8f9fa;
+        border-left: 4px solid #667eea;
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+    .symptom-name {
+        font-weight: 600;
+        font-size: 16px;
+        color: #1c1e21;
+        margin-bottom: 8px;
+    }
+
+    .symptom-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 12px;
+        font-size: 14px;
+        color: #495057;
+    }
+
+    .symptom-detail-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .symptom-detail-item i {
+        color: #667eea;
+        font-size: 12px;
+    }
+
+    .recommendation-box {
+        background: linear-gradient(135deg, #e7f3ff 0%, #f0f7ff 100%);
+        border: 2px solid #0066cc;
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .recommendation-box-title {
+        font-weight: 700;
+        font-size: 18px;
+        color: #0066cc;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .recommendation-text {
+        font-size: 15px;
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+    }
+
+    .info-item {
+        background: #f8f9fa;
+        padding: 16px;
+        border-radius: 8px;
+    }
+
+    .info-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #65676b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        font-weight: 600;
+        color: #1c1e21;
+    }
+</style>
+
+<div class="detail-container">
+    <div class="detail-card">
+        <div class="detail-header">
+            <div class="detail-header-top">
+                <a href="@Url.Action("Index", "ReporteSintomas")" class="back-link">
+                    <i class="fas fa-arrow-left"></i> Volver a Reportes
+                </a>
+                <span class="status-badge">@Model.Estado</span>
+            </div>
+            <div class="detail-title">
+                <i class="fas fa-file-medical-alt"></i> Reporte de Síntomas
+            </div>
+            <div class="detail-meta">
+                <div class="detail-meta-item">
+                    <i class="fas fa-calendar-alt"></i>
+                    @Model.FechaReporte.ToString("dddd, dd MMMM yyyy")
+                </div>
+                <div class="detail-meta-item">
+                    <i class="fas fa-clock"></i>
+                    @Model.FechaReporte.ToString("HH:mm")
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Ubicacion) && Model.Ubicacion != "No especificada")
+                {
+                    <div class="detail-meta-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        @Model.Ubicacion
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="detail-body">
+            <!-- Alerta de Urgencia -->
+            <div class="urgency-alert level-@Model.NivelUrgencia">
+                <div class="urgency-icon">
+                    @if (Model.NivelUrgencia >= 4)
+                    {
+                        <i class="fas fa-exclamation-triangle"></i>
+                    }
+                    else
+                    {
+                        <i class="fas fa-info-circle"></i>
+                    }
+                </div>
+                <div class="urgency-content">
+                    <h4>Nivel de Urgencia: @Model.NivelUrgencia</h4>
+                    <p style="margin: 0; font-size: 14px; opacity: 0.9;">
+                        @if (Model.NivelUrgencia == 5)
+                        {
+                            <text>Crítico - Se requiere atención médica inmediata</text>
+                        }
+                        else if (Model.NivelUrgencia == 4)
+                        {
+                            <text>Urgente - Acuda a urgencias lo antes posible</text>
+                        }
+                        else if (Model.NivelUrgencia == 3)
+                        {
+                            <text>Moderado-Alto - Programe cita médica pronto</text>
+                        }
+                        else if (Model.NivelUrgencia == 2)
+                        {
+                            <text>Moderado - Considere consultar con un médico</text>
+                        }
+                        else
+                        {
+                            <text>Leve - Monitoree sus síntomas</text>
+                        }
+                    </p>
+                </div>
+            </div>
+
+            <!-- Recomendación IA -->
+            @if (!string.IsNullOrEmpty(Model.RecomendacionIA))
+            {
+                <div class="section">
+                    <div class="recommendation-box">
+                        <div class="recommendation-box-title">
+                            <i class="fas fa-robot"></i>
+                            Recomendación del Asistente Médico IA
+                        </div>
+                        <div class="recommendation-text">
+                            @Html.Raw(Model.RecomendacionIA.Replace("\n", "<br>"))
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Síntomas Detallados -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-thermometer-half"></i>
+                    Síntomas Reportados (@Model.Sintomas.Count)
+                </div>
+                <div class="symptoms-detailed">
+                    @foreach (var sintoma in Model.Sintomas)
+                    {
+                        <div class="symptom-card">
+                            <div class="symptom-name">@sintoma.Nombre</div>
+                            <div class="symptom-details">
+                                <div class="symptom-detail-item">
+                                    <i class="fas fa-circle"></i>
+                                    <strong>Gravedad:</strong> @sintoma.Gravedad
+                                </div>
+                                <div class="symptom-detail-item">
+                                    <i class="fas fa-circle"></i>
+                                    <strong>Duración:</strong> @sintoma.Duracion día(s)
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(sintoma.Descripcion))
+                            {
+                                <div style="margin-top: 10px; font-size: 13px; color: #65676b;">
+                                    @sintoma.Descripcion
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Notas Adicionales -->
+            @if (!string.IsNullOrEmpty(Model.NotasAdicionales))
+            {
+                <div class="section">
+                    <div class="section-title">
+                        <i class="fas fa-notes-medical"></i>
+                        Notas Adicionales
+                    </div>
+                    <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; line-height: 1.6;">
+                        @Model.NotasAdicionales
+                    </div>
+                </div>
+            }
+
+            <!-- Información del Reporte -->
+            <div class="section">
+                <div class="section-title">
+                    <i class="fas fa-info-circle"></i>
+                    Información del Reporte
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">ID del Reporte</div>
+                        <div class="info-value">@Model.Id.Substring(0, 8).ToUpper()</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Estado</div>
+                        <div class="info-value">@Model.Estado</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Fecha de Creación</div>
+                        <div class="info-value">@Model.FechaReporte.ToString("dd/MM/yyyy HH:mm")</div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-label">Procesado</div>
+                        <div class="info-value">
+                            @if (Model.Procesado)
+                            {
+                                <span style="color: #198754;"><i class="fas fa-check-circle"></i> Sí</span>
+                            }
+                            else
+                            {
+                                <span style="color: #ffc107;"><i class="fas fa-clock"></i> Pendiente</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

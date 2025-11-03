@@ -1,15 +1,15 @@
-using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models;
-using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Services;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using System.Diagnostics;
+using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models;
+using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Services;
 
 namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
 {
-    /// <summary>
-    /// Controlador para gestionar reportes de síntomas
-    /// </summary>
-    public class ReporteSintomasController : Controller
+    public class ReporteSintomasController : BaseController
     {
         private readonly ReporteSintomasService _reporteService;
 
@@ -18,147 +18,178 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
             _reporteService = new ReporteSintomasService();
         }
 
-        // GET: ReporteSintomas
-        public async Task<ActionResult> Index()
+        /// <summary>
+        /// Lista todos los reportes del paciente
+        /// </summary>
+        public ActionResult Index()
         {
             try
             {
-                var reportes = await _reporteService.ObtenerTodos();
-                return View(reportes);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error al cargar reportes: {ex.Message}";
-                return View();
-            }
-        }
-
-        // GET: ReporteSintomas/Details/5
-        public async Task<ActionResult> Details(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                return RedirectToAction("Index");
-            }
-
-            try
-            {
-                var reporte = await _reporteService.ObtenerPorId(id);
-                if (reporte == null)
+                var pacienteId = ObtenerUsuarioId().ToString();
+                List<ReporteSintomas> reportes = new List<ReporteSintomas>();
+                
+                try
                 {
-                    TempData["Error"] = "Reporte no encontrado";
-                    return RedirectToAction("Index");
-                }
-
-                return View(reporte);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error al cargar reporte: {ex.Message}";
-                return RedirectToAction("Index");
-            }
-        }
-
-        // GET: ReporteSintomas/Create
-        public ActionResult Create()
-        {
-            return View();
-        }
-
-        // POST: ReporteSintomas/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Create(ReporteSintomas reporte)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    // El servicio ya se encarga de analizar con IA
-                    await _reporteService.Crear(reporte);
-                    TempData["Success"] = "Reporte creado exitosamente y analizado por IA";
-                    return RedirectToAction("Details", new { id = reporte.Id });
-                }
-
-                return View(reporte);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error al crear reporte: {ex.Message}";
-                return View(reporte);
-            }
-        }
-
-        // GET: ReporteSintomas/Edit/5
-        public async Task<ActionResult> Edit(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-            {
-                return RedirectToAction("Index");
-            }
-
-            try
-            {
-                var reporte = await _reporteService.ObtenerPorId(id);
-                if (reporte == null)
-                {
-                    TempData["Error"] = "Reporte no encontrado";
-                    return RedirectToAction("Index");
-                }
-
-                return View(reporte);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error al cargar reporte: {ex.Message}";
-                return RedirectToAction("Index");
-            }
-        }
-
-        // POST: ReporteSintomas/Edit/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> Edit(ReporteSintomas reporte)
-        {
-            try
-            {
-                if (ModelState.IsValid)
-                {
-                    var resultado = await _reporteService.Actualizar(reporte);
-                    if (resultado)
+                    var reportesTask = _reporteService.ObtenerPorPaciente(pacienteId);
+                    if (reportesTask.Wait(TimeSpan.FromSeconds(5)))
                     {
-                        TempData["Success"] = "Reporte actualizado exitosamente";
-                        return RedirectToAction("Index");
+                        reportes = reportesTask.Result;
                     }
                     else
                     {
-                        TempData["Error"] = "No se pudo actualizar el reporte";
+                        Debug.WriteLine("Timeout al obtener reportes desde MongoDB");
                     }
                 }
+                catch (Exception mongoEx)
+                {
+                    Debug.WriteLine($"Error MongoDB en ReporteSintomas Index: {mongoEx.Message}");
+                    reportes = new List<ReporteSintomas>();
+                }
 
-                return View(reporte);
+                return View(reportes);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al actualizar reporte: {ex.Message}";
-                return View(reporte);
+                TempData["Error"] = "Error al cargar los reportes: " + ex.Message;
+                return View(new List<ReporteSintomas>());
             }
         }
 
-        // GET: ReporteSintomas/Delete/5
-        public async Task<ActionResult> Delete(string id)
+        /// <summary>
+        /// Muestra el formulario para crear un nuevo reporte
+        /// </summary>
+        public ActionResult Crear()
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                return RedirectToAction("Index");
-            }
+            var modelo = new CrearReporteSintomasViewModel();
+            ViewBag.SintomasDisponibles = SintomasDisponibles.ObtenerTodos();
+            return View(modelo);
+        }
 
+        /// <summary>
+        /// Procesa el formulario de creación de reporte
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Crear(CrearReporteSintomasViewModel modelo, string[] sintomas)
+        {
             try
             {
-                var reporte = await _reporteService.ObtenerPorId(id);
+                if (sintomas == null || sintomas.Length == 0)
+                {
+                    ModelState.AddModelError("", "Debe seleccionar al menos un síntoma");
+                    ViewBag.SintomasDisponibles = SintomasDisponibles.ObtenerTodos();
+                    return View(modelo);
+                }
+
+                var pacienteId = ObtenerUsuarioId().ToString();
+                var nombrePaciente = Session["UsuarioNombre"]?.ToString() ?? "Usuario";
+
+                // Crear el reporte
+                var reporte = new ReporteSintomas
+                {
+                    PacienteId = pacienteId,
+                    NombrePaciente = nombrePaciente,
+                    FechaReporte = DateTime.Now,
+                    Ubicacion = modelo.Ubicacion ?? "No especificada",
+                    NotasAdicionales = modelo.Descripcion,
+                    Sintomas = new List<SintomaDetalle>()
+                };
+
+                // Agregar síntomas seleccionados
+                foreach (var sintomaSeleccionado in sintomas)
+                {
+                    reporte.Sintomas.Add(new SintomaDetalle
+                    {
+                        Nombre = sintomaSeleccionado,
+                        Gravedad = modelo.Gravedad,
+                        Duracion = modelo.Duracion,
+                        Descripcion = modelo.Descripcion
+                    });
+                }
+
+                // Si hay temperatura, agregar como síntoma adicional
+                if (modelo.Temperatura.HasValue && modelo.Temperatura >= 37.5)
+                {
+                    var gravedadFiebre = modelo.Temperatura >= 39 ? "Grave" : 
+                                        modelo.Temperatura >= 38 ? "Moderado" : "Leve";
+                    
+                    reporte.Sintomas.Add(new SintomaDetalle
+                    {
+                        Nombre = $"Fiebre ({modelo.Temperatura}°C)",
+                        Gravedad = gravedadFiebre,
+                        Duracion = modelo.Duracion,
+                        Descripcion = $"Temperatura corporal: {modelo.Temperatura}°C"
+                    });
+                }
+
+                // Guardar en MongoDB
+                try
+                {
+                    var crearTask = _reporteService.CrearReporte(reporte);
+                    if (crearTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        var reporteCreado = crearTask.Result;
+                        TempData["Success"] = "Reporte de síntomas creado exitosamente";
+                        return RedirectToAction("Detalle", new { id = reporteCreado.Id });
+                    }
+                    else
+                    {
+                        throw new TimeoutException("Timeout al crear reporte");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error al crear reporte: {ex.Message}");
+                    TempData["Error"] = "Error al guardar el reporte. Por favor, intenta de nuevo.";
+                    ViewBag.SintomasDisponibles = SintomasDisponibles.ObtenerTodos();
+                    return View(modelo);
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al crear el reporte: " + ex.Message;
+                ViewBag.SintomasDisponibles = SintomasDisponibles.ObtenerTodos();
+                return View(modelo);
+            }
+        }
+
+        /// <summary>
+        /// Muestra el detalle de un reporte específico
+        /// </summary>
+        public ActionResult Detalle(string id)
+        {
+            try
+            {
+                ReporteSintomas reporte = null;
+                
+                try
+                {
+                    var reporteTask = _reporteService.ObtenerPorId(id);
+                    if (reporteTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        reporte = reporteTask.Result;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Timeout al obtener reporte desde MongoDB");
+                    }
+                }
+                catch (Exception mongoEx)
+                {
+                    Debug.WriteLine($"Error MongoDB en ReporteSintomas Detalle: {mongoEx.Message}");
+                }
+
                 if (reporte == null)
                 {
                     TempData["Error"] = "Reporte no encontrado";
+                    return RedirectToAction("Index");
+                }
+
+                // Verificar que el reporte pertenece al paciente actual
+                var pacienteId = ObtenerUsuarioId().ToString();
+                if (reporte.PacienteId != pacienteId)
+                {
+                    TempData["Error"] = "No tiene permiso para ver este reporte";
                     return RedirectToAction("Index");
                 }
 
@@ -166,125 +197,47 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al cargar reporte: {ex.Message}";
+                TempData["Error"] = "Error al cargar el reporte: " + ex.Message;
                 return RedirectToAction("Index");
             }
         }
 
-        // POST: ReporteSintomas/Delete/5
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> DeleteConfirmed(string id)
+        /// <summary>
+        /// Obtiene estadísticas de síntomas (AJAX)
+        /// </summary>
+        public JsonResult Estadisticas()
         {
             try
             {
-                var resultado = await _reporteService.Eliminar(id);
-                if (resultado)
+                Dictionary<string, int> sintomasMasReportados = new Dictionary<string, int>();
+                Dictionary<string, int> estadisticasUbicacion = new Dictionary<string, int>();
+                
+                try
                 {
-                    TempData["Success"] = "Reporte eliminado exitosamente";
+                    var sintomasTask = _reporteService.ObtenerSintomasMasReportados();
+                    var ubicacionTask = _reporteService.ObtenerEstadisticasPorUbicacion();
+                    
+                    if (sintomasTask.Wait(TimeSpan.FromSeconds(3)) && ubicacionTask.Wait(TimeSpan.FromSeconds(3)))
+                    {
+                        sintomasMasReportados = sintomasTask.Result;
+                        estadisticasUbicacion = ubicacionTask.Result;
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    TempData["Error"] = "No se pudo eliminar el reporte";
-                }
-
-                return RedirectToAction("Index");
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error al eliminar reporte: {ex.Message}";
-                return RedirectToAction("Index");
-            }
-        }
-
-        // GET: ReporteSintomas/Urgentes
-        public async Task<ActionResult> Urgentes()
-        {
-            try
-            {
-                var reportes = await _reporteService.ObtenerUrgentes();
-                return View(reportes);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error al cargar reportes urgentes: {ex.Message}";
-                return RedirectToAction("Index");
-            }
-        }
-
-        // GET: ReporteSintomas/PorEstado
-        public async Task<ActionResult> PorEstado(ReportStatus estado)
-        {
-            try
-            {
-                var reportes = await _reporteService.ObtenerPorEstado(estado);
-                ViewBag.Estado = estado;
-                return View(reportes);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error al cargar reportes por estado: {ex.Message}";
-                return RedirectToAction("Index");
-            }
-        }
-
-        // GET: ReporteSintomas/Estadisticas
-        public async Task<ActionResult> Estadisticas()
-        {
-            try
-            {
-                var estadisticas = await _reporteService.ObtenerEstadisticas();
-                return View(estadisticas);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error al cargar estadísticas: {ex.Message}";
-                return RedirectToAction("Index");
-            }
-        }
-
-        // POST: ReporteSintomas/CambiarEstado/5
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<ActionResult> CambiarEstado(string id, ReportStatus nuevoEstado)
-        {
-            try
-            {
-                var resultado = await _reporteService.CambiarEstado(id, nuevoEstado);
-                if (resultado)
-                {
-                    TempData["Success"] = "Estado cambiado exitosamente";
-                }
-                else
-                {
-                    TempData["Error"] = "No se pudo cambiar el estado";
+                    Debug.WriteLine($"Error al obtener estadísticas: {ex.Message}");
                 }
 
-                return RedirectToAction("Details", new { id });
+                return Json(new 
+                { 
+                    sintomasMasReportados = sintomasMasReportados,
+                    estadisticasUbicacion = estadisticasUbicacion
+                }, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
-                TempData["Error"] = $"Error al cambiar estado: {ex.Message}";
-                return RedirectToAction("Index");
-            }
-        }
-
-        // GET: ReporteSintomas/Mapa
-        public async Task<ActionResult> Mapa()
-        {
-            try
-            {
-                var reportes = await _reporteService.ObtenerTodos();
-                // Filtrar solo los que tienen ubicación
-                var reportesConUbicacion = reportes.FindAll(r => r.HasLocation);
-                return View(reportesConUbicacion);
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"Error al cargar mapa: {ex.Message}";
-                return RedirectToAction("Index");
+                return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
     }
 }
-

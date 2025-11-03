@@ -1,0 +1,345 @@
+@model Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.CrearReporteSintomasViewModel
+
+@{
+    ViewBag.Title = "Nuevo Reporte de Síntomas";
+    Layout = "~/Views/Shared/_LayoutPaciente.cshtml";
+    var sintomasDisponibles = ViewBag.SintomasDisponibles as List<string>;
+}
+
+<style>
+    .create-report-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e4e6eb;
+    }
+
+    .form-title {
+        font-size: 26px;
+        font-weight: 700;
+        color: #1c1e21;
+        margin-bottom: 8px;
+    }
+
+    .form-subtitle {
+        font-size: 14px;
+        color: #65676b;
+    }
+
+    .form-section {
+        margin-bottom: 30px;
+    }
+
+    .section-label {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1c1e21;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-label i {
+        color: #667eea;
+    }
+
+    .symptoms-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 12px;
+    }
+
+    .symptom-checkbox {
+        position: relative;
+    }
+
+    .symptom-checkbox input[type="checkbox"] {
+        position: absolute;
+        opacity: 0;
+    }
+
+    .symptom-label {
+        display: block;
+        padding: 14px 16px;
+        background: #f8f9fa;
+        border: 2px solid #e4e6eb;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .symptom-checkbox input[type="checkbox"]:checked + .symptom-label {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .symptom-label:hover {
+        border-color: #667eea;
+        background: #f0f2ff;
+    }
+
+    .symptom-checkbox input[type="checkbox"]:checked + .symptom-label:hover {
+        background: linear-gradient(135deg, #5568d3 0%, #6239a0 100%);
+    }
+
+    .form-group label {
+        font-weight: 600;
+        color: #1c1e21;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        border: 2px solid #e4e6eb;
+        border-radius: 8px;
+        padding: 12px 16px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s;
+        width: 100%;
+    }
+
+    .btn-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: #e4e6eb;
+        color: #1c1e21;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        width: 100%;
+        margin-top: 12px;
+    }
+
+    .btn-cancel:hover {
+        background: #ccd0d5;
+    }
+
+    .info-box {
+        background: #e7f3ff;
+        border-left: 4px solid #0066cc;
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 24px;
+    }
+
+    .info-box-title {
+        font-weight: 600;
+        color: #0066cc;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-box-text {
+        font-size: 14px;
+        color: #495057;
+    }
+
+    .temperature-input {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .temperature-input input {
+        flex: 1;
+    }
+
+    .temp-unit {
+        font-weight: 600;
+        color: #65676b;
+    }
+</style>
+
+<div class="create-report-container">
+    <div class="form-card">
+        <div class="form-header">
+            <div class="form-title">
+                <i class="fas fa-file-medical-alt"></i> Nuevo Reporte de Síntomas
+            </div>
+            <div class="form-subtitle">
+                Completa la información para recibir una evaluación y recomendaciones personalizadas
+            </div>
+        </div>
+
+        <div class="info-box">
+            <div class="info-box-title">
+                <i class="fas fa-info-circle"></i>
+                Información Importante
+            </div>
+            <div class="info-box-text">
+                Este reporte nos ayudará a entender mejor tu situación de salud. Si experimentas síntomas graves como dificultad severa para respirar o dolor de pecho intenso, acude inmediatamente a urgencias.
+            </div>
+        </div>
+
+        @using (Html.BeginForm("Crear", "ReporteSintomas", FormMethod.Post, new { @id = "formReporte" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+
+            <!-- Selección de Síntomas -->
+            <div class="form-section">
+                <div class="section-label">
+                    <i class="fas fa-thermometer"></i>
+                    ¿Qué síntomas presentas?
+                </div>
+                <div class="symptoms-grid">
+                    @if (sintomasDisponibles != null)
+                    {
+                        foreach (var sintoma in sintomasDisponibles)
+                        {
+                            <div class="symptom-checkbox">
+                                <input type="checkbox" name="sintomas" value="@sintoma" id="sintoma_@sintoma.Replace(" ", "_")">
+                                <label for="sintoma_@sintoma.Replace(" ", "_")" class="symptom-label">
+                                    @sintoma
+                                </label>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Gravedad y Duración -->
+            <div class="form-section">
+                <div class="section-label">
+                    <i class="fas fa-sliders-h"></i>
+                    Detalles de los Síntomas
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 form-group">
+                        @Html.LabelFor(m => m.Gravedad)
+                        @Html.DropDownListFor(m => m.Gravedad, 
+                            new SelectList(new[] { "Leve", "Moderado", "Grave" }), 
+                            new { @class = "form-control form-select" })
+                    </div>
+                    <div class="col-md-4 form-group">
+                        @Html.LabelFor(m => m.Duracion)
+                        @Html.TextBoxFor(m => m.Duracion, new { @class = "form-control", type = "number", min = "0", max = "365", placeholder = "Ejemplo: 3" })
+                        @Html.ValidationMessageFor(m => m.Duracion, "", new { @class = "text-danger" })
+                    </div>
+                    <div class="col-md-4 form-group">
+                        @Html.LabelFor(m => m.Temperatura)
+                        <div class="temperature-input">
+                            @Html.TextBoxFor(m => m.Temperatura, new { @class = "form-control", type = "number", step = "0.1", min = "35", max = "45", placeholder = "37.5" })
+                            <span class="temp-unit">°C</span>
+                        </div>
+                        @Html.ValidationMessageFor(m => m.Temperatura, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <!-- Descripción Detallada -->
+            <div class="form-section">
+                <div class="section-label">
+                    <i class="fas fa-comment-medical"></i>
+                    Descripción Detallada (Opcional)
+                </div>
+                <div class="form-group">
+                    @Html.TextAreaFor(m => m.Descripcion, new { 
+                        @class = "form-control", 
+                        rows = "4", 
+                        placeholder = "Describe con más detalle cómo te sientes, cuándo comenzaron los síntomas, si algo los mejora o empeora, etc." 
+                    })
+                </div>
+            </div>
+
+            <!-- Ubicación -->
+            <div class="form-section">
+                <div class="section-label">
+                    <i class="fas fa-map-marker-alt"></i>
+                    Ubicación (Opcional)
+                </div>
+                <div class="form-group">
+                    @Html.TextBoxFor(m => m.Ubicacion, new { 
+                        @class = "form-control", 
+                        placeholder = "Ejemplo: Lima, Perú" 
+                    })
+                    <small class="text-muted">Esto nos ayuda a generar mapas de salud y alertas en tu zona</small>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-submit">
+                    <i class="fas fa-paper-plane"></i> Enviar Reporte
+                </button>
+                <a href="@Url.Action("Index", "ReporteSintomas")" class="btn btn-cancel">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+    <script>
+        $(document).ready(function() {
+            // Validación personalizada
+            $('#formReporte').submit(function(e) {
+                var sintomasSeleccionados = $('input[name="sintomas"]:checked').length;
+                
+                if (sintomasSeleccionados === 0) {
+                    e.preventDefault();
+                    alert('Por favor, selecciona al menos un síntoma');
+                    return false;
+                }
+
+                // Confirmar envío
+                return confirm('¿Estás seguro de enviar este reporte de síntomas?');
+            });
+
+            // Animación al seleccionar síntomas
+            $('.symptom-checkbox input[type="checkbox"]').change(function() {
+                var count = $('input[name="sintomas"]:checked').length;
+                if (count > 0) {
+                    $('#btnSubmit').prop('disabled', false);
+                }
+            });
+        });
+    </script>
+}
+

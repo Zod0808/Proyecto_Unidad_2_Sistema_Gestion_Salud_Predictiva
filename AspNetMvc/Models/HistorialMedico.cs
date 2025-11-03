@@ -20,6 +20,8 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models
 
         public string Sintomas { get; set; }
 
+        public string Descripcion { get; set; }
+
         public string Tratamiento { get; set; }
 
         public string Medicamentos { get; set; }
@@ -49,6 +51,7 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models
         public HistorialMedico()
         {
             Fecha = DateTime.Now;
+            Descripcion = string.Empty;
         }
     }
 }

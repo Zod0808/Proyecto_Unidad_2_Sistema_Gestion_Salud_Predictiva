@@ -89,6 +89,93 @@ db.usuarios.insertOne({
     "updatedAt": new Date()
 });
 
+// Insertar historiales médicos de prueba para el paciente
+db.medicalhistories.insertMany([
+    {
+        "patientId": "1", // ID del paciente de prueba
+        "doctorId": "2",  // ID del doctor de prueba
+        "patientName": "María García",
+        "age": 35,
+        "diagnosis": "Asma leve",
+        "symptoms": [
+            { "name": "Tos seca", "severity": "Moderate", "duration": "3 días", "description": "Tos constante" },
+            { "name": "Dificultad respiratoria", "severity": "Mild", "duration": "3 días", "description": "Dificultad al respirar" },
+            { "name": "Sibilancias", "severity": "Mild", "duration": "3 días", "description": "Sonidos al respirar" }
+        ],
+        "description": "Paciente presenta síntomas de asma leve. Se recomienda usar inhalador preventivo y evitar exposición a alérgenos.",
+        "date": new Date('2024-01-15'),
+        "location": {
+            "latitude": -12.0464,
+            "longitude": -77.0428,
+            "address": "Lima, Perú"
+        },
+        "images": [],
+        "audioNotes": null,
+        "isOffline": false,
+        "syncStatus": "synced",
+        "isSynced": true,
+        "needsSync": false,
+        "isUrgent": false,
+        "hasLocation": true,
+        "createdAt": new Date('2024-01-15'),
+        "updatedAt": new Date('2024-01-15')
+    },
+    {
+        "patientId": "1",
+        "doctorId": "2",
+        "patientName": "María García",
+        "age": 35,
+        "diagnosis": "Bronquitis aguda",
+        "symptoms": [
+            { "name": "Tos con flemas", "severity": "Severe", "duration": "5 días", "description": "Tos con expectoración" },
+            { "name": "Dolor de pecho", "severity": "Moderate", "duration": "5 días", "description": "Dolor intermitente" },
+            { "name": "Fiebre baja", "severity": "Mild", "duration": "2 días", "description": "Fiebre de hasta 38°C" }
+        ],
+        "description": "Bronquitis aguda probablemente viral. Se prescribió reposo, líquidos y medicamentos para la tos.",
+        "date": new Date('2024-02-20'),
+        "location": {
+            "latitude": -12.0464,
+            "longitude": -77.0428,
+            "address": "Lima, Perú"
+        },
+        "images": [],
+        "audioNotes": null,
+        "isOffline": false,
+        "syncStatus": "synced",
+        "isSynced": true,
+        "needsSync": false,
+        "isUrgent": false,
+        "hasLocation": true,
+        "createdAt": new Date('2024-02-20'),
+        "updatedAt": new Date('2024-02-20')
+    },
+    {
+        "patientId": "1",
+        "doctorId": "2",
+        "patientName": "María García",
+        "age": 35,
+        "diagnosis": "Chequeo preventivo",
+        "symptoms": [],
+        "description": "Chequeo anual. Paciente en buen estado de salud general. Función pulmonar dentro de parámetros normales.",
+        "date": new Date('2024-03-10'),
+        "location": {
+            "latitude": -12.0464,
+            "longitude": -77.0428,
+            "address": "Lima, Perú"
+        },
+        "images": [],
+        "audioNotes": null,
+        "isOffline": false,
+        "syncStatus": "synced",
+        "isSynced": true,
+        "needsSync": false,
+        "isUrgent": false,
+        "hasLocation": true,
+        "createdAt": new Date('2024-03-10'),
+        "updatedAt": new Date('2024-03-10')
+    }
+]);
+
 // Mensaje de confirmación
 print('✅ Base de datos RespiCare inicializada correctamente');
 print('✅ Colecciones creadas: usuarios, medicalhistories, symptomreports, aianalyses, chatconversations');
@@ -97,4 +184,5 @@ print('✅ Usuarios de prueba creados:');
 print('   - admin@respicare.com (password123) - Administrador');
 print('   - doctor@respicare.com (password123) - Doctor');
 print('   - paciente@respicare.com (password123) - Paciente');
+print('✅ Historiales médicos de prueba insertados para el paciente');
 

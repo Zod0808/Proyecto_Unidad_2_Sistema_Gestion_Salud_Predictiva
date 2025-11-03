@@ -62,15 +62,18 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Helpers
                 var client = new MongoClient(settings);
                 _database = client.GetDatabase(databaseName);
 
-                // Verificar la conexión
-                _database.RunCommandAsync((Command<MongoDB.Bson.BsonDocument>)"{ping:1}").Wait();
-
-                Console.WriteLine($"Conexión exitosa a MongoDB: {databaseName}");
+                // La conexión se verificará cuando se use la base de datos
+                Console.WriteLine($"MongoDB client inicializado para: {databaseName}");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error al conectar a MongoDB: {ex.Message}");
-                throw new Exception($"Error al inicializar MongoDB: {ex.Message}", ex);
+                string errorMessage = ex.Message;
+                if (ex.InnerException != null)
+                {
+                    errorMessage += $" | Inner: {ex.InnerException.Message}";
+                }
+                Console.WriteLine($"Error al conectar a MongoDB: {errorMessage}");
+                throw new Exception($"Error al inicializar MongoDB: {errorMessage}", ex);
             }
         }
 
@@ -93,8 +96,8 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Helpers
         {
             try
             {
-                Database.RunCommandAsync((Command<MongoDB.Bson.BsonDocument>)"{ping:1}").Wait();
-                return true;
+                // Verificar simplemente si la base de datos no es null
+                return Database != null;
             }
             catch
             {

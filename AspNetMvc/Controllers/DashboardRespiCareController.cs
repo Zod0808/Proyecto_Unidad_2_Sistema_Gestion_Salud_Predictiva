@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using System.Diagnostics;
 
 namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
 {
@@ -26,14 +27,53 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
         }
 
         // GET: DashboardRespiCare
-        public async Task<ActionResult> Index()
+        public ActionResult Index()
         {
             try
             {
-                // Obtener estadísticas generales
-                var estadisticasUsuarios = await _usuarioService.ObtenerEstadisticas();
-                var estadisticasHistoriales = await _historialService.ObtenerEstadisticas();
-                var estadisticasReportes = await _reporteService.ObtenerEstadisticas();
+                // Obtener estadísticas generales (con timeout)
+                Dictionary<string, int> estadisticasUsuarios = new Dictionary<string, int>();
+                Dictionary<string, object> estadisticasHistoriales = new Dictionary<string, object>();
+                Dictionary<string, object> estadisticasReportes = new Dictionary<string, object>();
+                
+                try
+                {
+                    var usuariosTask = _usuarioService.ObtenerEstadisticas();
+                    if (usuariosTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        estadisticasUsuarios = usuariosTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB estadísticas usuarios: {ex.Message}");
+                }
+                
+                try
+                {
+                    var historialesTask = _historialService.ObtenerEstadisticas();
+                    if (historialesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        estadisticasHistoriales = historialesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB estadísticas historiales: {ex.Message}");
+                }
+                
+                try
+                {
+                    var reportesTask = _reporteService.ObtenerEstadisticas();
+                    if (reportesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        estadisticasReportes = reportesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB estadísticas reportes: {ex.Message}");
+                }
 
                 // Crear modelo de vista
                 var modelo = new Dictionary<string, object>
@@ -54,12 +94,38 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
         }
 
         // GET: DashboardRespiCare/Analytics
-        public async Task<ActionResult> Analytics()
+        public ActionResult Analytics()
         {
             try
             {
-                var estadisticasReportes = await _reporteService.ObtenerEstadisticas();
-                var estadisticasHistoriales = await _historialService.ObtenerEstadisticas();
+                Dictionary<string, object> estadisticasReportes = new Dictionary<string, object>();
+                Dictionary<string, object> estadisticasHistoriales = new Dictionary<string, object>();
+                
+                try
+                {
+                    var reportesTask = _reporteService.ObtenerEstadisticas();
+                    if (reportesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        estadisticasReportes = reportesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB estadísticas reportes: {ex.Message}");
+                }
+                
+                try
+                {
+                    var historialesTask = _historialService.ObtenerEstadisticas();
+                    if (historialesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        estadisticasHistoriales = historialesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB estadísticas historiales: {ex.Message}");
+                }
 
                 var modelo = new Dictionary<string, object>
                 {
@@ -77,12 +143,26 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
         }
 
         // GET: DashboardRespiCare/MapaInteractivo
-        public async Task<ActionResult> MapaInteractivo()
+        public ActionResult MapaInteractivo()
         {
             try
             {
-                var reportes = await _reporteService.ObtenerTodos();
-                var reportesConUbicacion = reportes.FindAll(r => r.HasLocation);
+                List<Models.ReporteSintomas> reportes = new List<Models.ReporteSintomas>();
+                
+                try
+                {
+                    var reportesTask = _reporteService.ObtenerTodos();
+                    if (reportesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        reportes = reportesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB mapa: {ex.Message}");
+                }
+                
+                var reportesConUbicacion = reportes.FindAll(r => !string.IsNullOrEmpty(r.Ubicacion) && r.Ubicacion != "No especificada");
                 
                 return View(reportesConUbicacion);
             }
@@ -94,13 +174,52 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
         }
 
         // GET: DashboardRespiCare/Estadisticas
-        public async Task<ActionResult> Estadisticas()
+        public ActionResult Estadisticas()
         {
             try
             {
-                var estadisticasUsuarios = await _usuarioService.ObtenerEstadisticas();
-                var estadisticasHistoriales = await _historialService.ObtenerEstadisticas();
-                var estadisticasReportes = await _reporteService.ObtenerEstadisticas();
+                Dictionary<string, int> estadisticasUsuarios = new Dictionary<string, int>();
+                Dictionary<string, object> estadisticasHistoriales = new Dictionary<string, object>();
+                Dictionary<string, object> estadisticasReportes = new Dictionary<string, object>();
+                
+                try
+                {
+                    var usuariosTask = _usuarioService.ObtenerEstadisticas();
+                    if (usuariosTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        estadisticasUsuarios = usuariosTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB estadísticas usuarios: {ex.Message}");
+                }
+                
+                try
+                {
+                    var historialesTask = _historialService.ObtenerEstadisticas();
+                    if (historialesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        estadisticasHistoriales = historialesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB estadísticas historiales: {ex.Message}");
+                }
+                
+                try
+                {
+                    var reportesTask = _reporteService.ObtenerEstadisticas();
+                    if (reportesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        estadisticasReportes = reportesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB estadísticas reportes: {ex.Message}");
+                }
 
                 var modelo = new Dictionary<string, Dictionary<string, object>>
                 {
@@ -119,16 +238,42 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
         }
 
         // GET: DashboardRespiCare/EstadoServicioIA
-        public async Task<ActionResult> EstadoServicioIA()
+        public ActionResult EstadoServicioIA()
         {
             try
             {
-                var disponible = await _aiService.EstaDisponible();
+                bool disponible = false;
+                AIHealthResponse estado = null;
+                
+                try
+                {
+                    var disponibleTask = _aiService.EstaDisponible();
+                    if (disponibleTask.Wait(TimeSpan.FromSeconds(3)))
+                    {
+                        disponible = disponibleTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error verificar AI disponible: {ex.Message}");
+                }
+                
                 ViewBag.Disponible = disponible;
 
                 if (disponible)
                 {
-                    var estado = await _aiService.ObtenerEstadoServicio();
+                    try
+                    {
+                        var estadoTask = _aiService.ObtenerEstadoServicio();
+                        if (estadoTask.Wait(TimeSpan.FromSeconds(3)))
+                        {
+                            estado = estadoTask.Result;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Error obtener estado AI: {ex.Message}");
+                    }
                     return View(estado);
                 }
 
@@ -143,12 +288,38 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
         }
 
         // GET: DashboardRespiCare/Urgencias
-        public async Task<ActionResult> Urgencias()
+        public ActionResult Urgencias()
         {
             try
             {
-                var historialesUrgentes = await _historialService.ObtenerUrgentes();
-                var reportesUrgentes = await _reporteService.ObtenerUrgentes();
+                List<Models.HistorialMedicoRespiCare> historialesUrgentes = new List<Models.HistorialMedicoRespiCare>();
+                List<Models.ReporteSintomas> reportesUrgentes = new List<Models.ReporteSintomas>();
+                
+                try
+                {
+                    var historialesTask = _historialService.ObtenerUrgentes();
+                    if (historialesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        historialesUrgentes = historialesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB historiales urgentes: {ex.Message}");
+                }
+                
+                try
+                {
+                    var reportesTask = _reporteService.ObtenerUrgentes();
+                    if (reportesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        reportesUrgentes = reportesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB reportes urgentes: {ex.Message}");
+                }
 
                 var modelo = new Dictionary<string, object>
                 {
@@ -166,15 +337,41 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
         }
 
         // GET: DashboardRespiCare/TendenciasTemporal
-        public async Task<ActionResult> TendenciasTemporal()
+        public ActionResult TendenciasTemporal()
         {
             try
             {
                 var fechaInicio = DateTime.Now.AddMonths(-3);
                 var fechaFin = DateTime.Now;
 
-                var historiales = await _historialService.ObtenerPorFechas(fechaInicio, fechaFin);
-                var reportes = await _reporteService.ObtenerPorFechas(fechaInicio, fechaFin);
+                List<Models.HistorialMedicoRespiCare> historiales = new List<Models.HistorialMedicoRespiCare>();
+                List<Models.ReporteSintomas> reportes = new List<Models.ReporteSintomas>();
+                
+                try
+                {
+                    var historialesTask = _historialService.ObtenerPorFechas(fechaInicio, fechaFin);
+                    if (historialesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        historiales = historialesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB historiales por fechas: {ex.Message}");
+                }
+                
+                try
+                {
+                    var reportesTask = _reporteService.ObtenerPorFechas(fechaInicio, fechaFin);
+                    if (reportesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        reportes = reportesTask.Result;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error MongoDB reportes por fechas: {ex.Message}");
+                }
 
                 var modelo = new Dictionary<string, object>
                 {
@@ -194,4 +391,6 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
         }
     }
 }
+
+
 

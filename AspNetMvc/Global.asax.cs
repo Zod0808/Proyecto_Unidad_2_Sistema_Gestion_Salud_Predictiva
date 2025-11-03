@@ -14,5 +14,6 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva
             AreaRegistration.RegisterAllAreas();
             RouteConfig.RegisterRoutes(RouteTable.Routes);
         }
+
     }
 }

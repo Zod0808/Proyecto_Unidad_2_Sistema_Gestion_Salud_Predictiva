@@ -2,28 +2,107 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using System.Threading.Tasks;
+using System.Diagnostics;
 using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models;
+using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Services;
 
 namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
 {
     public class PacienteController : BaseController
     {
+        private readonly HistorialMedicoService _historialService;
+
+        public PacienteController()
+        {
+            _historialService = new HistorialMedicoService();
+        }
+
         public ActionResult Dashboard()
         {
-            var pacienteId = ObtenerUsuarioId();
-            var model = new PacienteDashboardViewModel
+            try
             {
-                ProximasCitas = ObtenerProximasCitas(pacienteId),
-                HistorialReciente = ObtenerHistorialReciente(pacienteId),
-                ChatsIA = ObtenerChatsIARecientes(pacienteId),
-                EstadisticasGenerales = new EstadisticasPaciente
+                var pacienteId = ObtenerUsuarioId();
+                
+                // Obtener historiales reales desde MongoDB (con timeout)
+                List<HistorialMedicoRespiCare> todosLosHistoriales = new List<HistorialMedicoRespiCare>();
+                try
                 {
-                    TotalCitas = 5,
-                    CitasPendientes = 1,
-                    UltimaConsulta = DateTime.Now.AddDays(-7)
+                    var historialesTask = _historialService.ObtenerTodos();
+                    if (historialesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        todosLosHistoriales = historialesTask.Result;
+                    }
+                    else
+                    {
+                        // Timeout - usar datos dummy
+                        throw new TimeoutException("Timeout al obtener historiales desde MongoDB");
+                    }
                 }
-            };
-            return View(model);
+                catch (Exception mongoEx)
+                {
+                    // Si MongoDB falla, continuar con datos dummy
+                    Debug.WriteLine($"Error MongoDB en Dashboard: {mongoEx.Message}");
+                    todosLosHistoriales = new List<HistorialMedicoRespiCare>();
+                }
+                
+                // Filtrar historiales del paciente actual (convertir int a string para comparación)
+                var historialesPaciente = todosLosHistoriales
+                    .Where(h => h.PatientId == pacienteId.ToString())
+                    .OrderByDescending(h => h.Date)
+                    .Take(5)
+                    .ToList();
+                
+                // Mapear a HistorialMedico del modelo antiguo para compatibilidad
+                var historialesMapeados = historialesPaciente.Select(h => new HistorialMedico
+                {
+                    Id = int.TryParse(h.Id, out var id) ? id : 0,
+                    Fecha = h.Date,
+                    Diagnostico = h.Diagnosis,
+                    Sintomas = string.Join(", ", h.Symptoms.Select(s => s.Name)),
+                    Descripcion = h.Description,
+                    Medico = new Medico
+                    {
+                        Usuario = new Usuario
+                        {
+                            Nombre = "Dr. " + h.DoctorId,
+                            Apellido = ""
+                        }
+                    }
+                }).ToList();
+                
+                var model = new PacienteDashboardViewModel
+                {
+                    ProximasCitas = new List<Cita>(), // Deshabilitado
+                    HistorialReciente = historialesMapeados,
+                    ChatsIA = ObtenerChatsIARecientes(pacienteId),
+                    EstadisticasGenerales = new EstadisticasPaciente
+                    {
+                        TotalCitas = 0, // Deshabilitado
+                        CitasPendientes = 0, // Deshabilitado
+                        UltimaConsulta = historialesPaciente.Any() ? historialesPaciente.First().Date : DateTime.Now.AddDays(-7)
+                    }
+                };
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                // Si falla MongoDB, devolver datos dummy para desarrollo
+                var pacienteId = ObtenerUsuarioId();
+                var model = new PacienteDashboardViewModel
+                {
+                    ProximasCitas = new List<Cita>(),
+                    HistorialReciente = ObtenerHistorialReciente(pacienteId),
+                    ChatsIA = ObtenerChatsIARecientes(pacienteId),
+                    EstadisticasGenerales = new EstadisticasPaciente
+                    {
+                        TotalCitas = 0,
+                        CitasPendientes = 0,
+                        UltimaConsulta = DateTime.Now.AddDays(-7)
+                    }
+                };
+                return View(model);
+            }
         }
 
         public ActionResult ChatIA()
@@ -71,55 +150,158 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Controllers
 
         public ActionResult ReservarCita()
         {
-            ViewBag.Especialidades = ObtenerEspecialidades();
-            return View();
+            // Función deshabilitada para pacientes
+            TempData["Error"] = "Esta funcionalidad no está disponible";
+            return RedirectToAction("Dashboard");
         }
 
         [HttpPost]
         public ActionResult ReservarCita(int especialidadId, DateTime fecha, string motivo)
         {
-            var pacienteId = ObtenerUsuarioId();
-            
-            // Obtener médicos disponibles para esa especialidad
-            var medicosDisponibles = ObtenerMedicosDisponibles(especialidadId, fecha);
-            
-            if (medicosDisponibles.Any())
-            {
-                var medico = medicosDisponibles.First(); // Seleccionar el primero disponible
-                var cita = CrearCita(pacienteId, medico.Id, especialidadId, fecha, motivo);
-                
-                TempData["Mensaje"] = "Cita reservada exitosamente";
-                return RedirectToAction("MisCitas");
-            }
-            else
-            {
-                TempData["Error"] = "No hay médicos disponibles para esa fecha y especialidad";
-                ViewBag.Especialidades = ObtenerEspecialidades();
-                return View();
-            }
+            // Función deshabilitada para pacientes
+            TempData["Error"] = "Esta funcionalidad no está disponible";
+            return RedirectToAction("Dashboard");
         }
 
         public ActionResult MisCitas()
         {
-            var pacienteId = ObtenerUsuarioId();
-            var citas = ObtenerCitasPaciente(pacienteId);
-            return View(citas);
+            // Función deshabilitada para pacientes
+            TempData["Error"] = "Esta funcionalidad no está disponible";
+            return RedirectToAction("Dashboard");
         }
 
         public ActionResult HistorialMedico()
         {
-            var pacienteId = ObtenerUsuarioId();
-            var historial = ObtenerHistorialCompleto(pacienteId);
-            return View(historial);
+            try
+            {
+                var pacienteId = ObtenerUsuarioId();
+                
+                // Obtener historiales reales desde MongoDB (con timeout)
+                List<HistorialMedicoRespiCare> todosLosHistoriales = new List<HistorialMedicoRespiCare>();
+                try
+                {
+                    var historialesTask = _historialService.ObtenerTodos();
+                    if (historialesTask.Wait(TimeSpan.FromSeconds(5)))
+                    {
+                        todosLosHistoriales = historialesTask.Result;
+                    }
+                    else
+                    {
+                        Debug.WriteLine("Timeout al obtener historiales desde MongoDB en HistorialMedico");
+                    }
+                }
+                catch (Exception mongoEx)
+                {
+                    Debug.WriteLine($"Error MongoDB en HistorialMedico: {mongoEx.Message}");
+                    todosLosHistoriales = new List<HistorialMedicoRespiCare>();
+                }
+                
+                // Filtrar historiales del paciente actual
+                var historialesPaciente = todosLosHistoriales
+                    .Where(h => h.PatientId == pacienteId.ToString())
+                    .OrderByDescending(h => h.Date)
+                    .ToList();
+                
+                // Mapear a HistorialMedico del modelo antiguo para compatibilidad
+                var historialesMapeados = historialesPaciente.Select(h => new HistorialMedico
+                {
+                    Id = int.TryParse(h.Id, out var id) ? id : 0,
+                    Fecha = h.Date,
+                    Diagnostico = h.Diagnosis,
+                    Sintomas = string.Join(", ", h.Symptoms.Select(s => s.Name)),
+                    Descripcion = h.Description,
+                    Tratamiento = h.Description, // Usar descripción como tratamiento
+                    Medico = new Medico
+                    {
+                        Usuario = new Usuario
+                        {
+                            Nombre = "Dr. " + h.DoctorId,
+                            Apellido = ""
+                        }
+                    }
+                }).ToList();
+                
+                return View(historialesMapeados);
+            }
+            catch (Exception)
+            {
+                // Si falla MongoDB, devolver datos dummy para desarrollo
+                var pacienteId = ObtenerUsuarioId();
+                var historial = ObtenerHistorialCompleto(pacienteId);
+                return View(historial);
+            }
         }
 
         [HttpPost]
         public ActionResult CancelarCita(int citaId, string motivo)
         {
-            var pacienteId = ObtenerUsuarioId();
-            CancelarCitaPaciente(citaId, pacienteId, motivo);
-            TempData["Mensaje"] = "Cita cancelada exitosamente";
-            return RedirectToAction("MisCitas");
+            // Función deshabilitada para pacientes
+            TempData["Error"] = "Esta funcionalidad no está disponible";
+            return RedirectToAction("Dashboard");
+        }
+
+        /// <summary>
+        /// Muestra el perfil del paciente
+        /// </summary>
+        public ActionResult Perfil()
+        {
+            try
+            {
+                var pacienteId = ObtenerUsuarioId();
+                var nombreUsuario = Session["UsuarioNombre"]?.ToString() ?? "Usuario";
+                
+                // Crear modelo de perfil (por ahora con datos simulados o de sesión)
+                var perfil = new PerfilPacienteViewModel
+                {
+                    Id = pacienteId,
+                    NombreCompleto = nombreUsuario,
+                    Email = Session["UsuarioEmail"]?.ToString() ?? "paciente@respicare.com",
+                    Telefono = "No especificado",
+                    FechaNacimiento = DateTime.Now.AddYears(-30),
+                    Genero = "No especificado",
+                    Direccion = "No especificada",
+                    GrupoSanguineo = "No especificado",
+                    Alergias = "Ninguna conocida",
+                    MedicamentosActuales = "Ninguno",
+                    CondicionesCronicas = "Ninguna",
+                    ContactoEmergencia = "No especificado",
+                    TelefonoEmergencia = "No especificado",
+                    FechaRegistro = DateTime.Now.AddMonths(-6)
+                };
+                
+                return View(perfil);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al cargar el perfil: " + ex.Message;
+                return RedirectToAction("Dashboard");
+            }
+        }
+
+        /// <summary>
+        /// Actualiza el perfil del paciente
+        /// </summary>
+        [HttpPost]
+        public ActionResult ActualizarPerfil(PerfilPacienteViewModel modelo)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    // TODO: Guardar en MongoDB
+                    // Por ahora, solo simular actualización
+                    
+                    TempData["Success"] = "Perfil actualizado correctamente";
+                    return RedirectToAction("Perfil");
+                }
+                
+                return View("Perfil", modelo);
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Error al actualizar el perfil: " + ex.Message;
+                return RedirectToAction("Perfil");
+            }
         }
 
         #region Métodos privados

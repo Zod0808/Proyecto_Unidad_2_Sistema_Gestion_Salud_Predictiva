@@ -1,70 +1,56 @@
 @model Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.PacienteDashboardViewModel
 
 @{
-    ViewBag.Title = "Dashboard - Paciente";
-    Layout = "~/Views/Share/_Layout.cshtml";
+    ViewBag.Title = "Mi Espacio - Paciente";
+    Layout = "~/Views/Shared/_LayoutPaciente.cshtml";
 }
 
 <div class="row mt-4">
     <div class="col-12">
-        <h2><i class="bi bi-speedometer2"></i> Dashboard del Paciente</h2>
+        <h2><i class="fas fa-user-circle"></i> Mi Espacio</h2>
         <p class="lead">Bienvenido, @ViewBag.UsuarioNombre</p>
     </div>
 </div>
 
 <div class="row">
     <!-- Estadísticas Generales -->
-    <div class="col-md-3 mb-4">
-        <div class="card bg-primary text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>@Model.EstadisticasGenerales.TotalCitas</h4>
-                        <p class="mb-0">Total Citas</p>
-                    </div>
-                    <i class="bi bi-calendar-check fs-1"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-4">
-        <div class="card bg-warning text-white">
-            <div class="card-body">
-                <div class="d-flex justify-content-between">
-                    <div>
-                        <h4>@Model.EstadisticasGenerales.CitasPendientes</h4>
-                        <p class="mb-0">Citas Pendientes</p>
-                    </div>
-                    <i class="bi bi-clock fs-1"></i>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="col-md-3 mb-4">
+    <div class="col-md-4 mb-4">
         <div class="card bg-info text-white">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
                         <h4>@Model.ChatsIA.Count</h4>
-                        <p class="mb-0">Chats IA</p>
+                        <p class="mb-0">Chats con IA</p>
                     </div>
-                    <i class="bi bi-chat-dots fs-1"></i>
+                    <i class="fas fa-robot fs-1"></i>
                 </div>
             </div>
         </div>
     </div>
     
-    <div class="col-md-3 mb-4">
+    <div class="col-md-4 mb-4">
         <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>@Model.HistorialReciente.Count</h4>
+                        <p class="mb-0">Registros Médicos</p>
+                    </div>
+                    <i class="fas fa-file-medical fs-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card bg-secondary text-white">
             <div class="card-body">
                 <div class="d-flex justify-content-between">
                     <div>
                         <small>@Model.EstadisticasGenerales.UltimaConsulta.ToString("dd/MM/yyyy")</small>
                         <p class="mb-0">Última Consulta</p>
                     </div>
-                    <i class="bi bi-file-medical fs-1"></i>
+                    <i class="fas fa-calendar-check fs-1"></i>
                 </div>
             </div>
         </div>
@@ -73,75 +59,34 @@
 
 <div class="row">
     <!-- Acciones Rápidas -->
-    <div class="col-md-4 mb-4">
+    <div class="col-md-6 mb-4">
         <div class="card h-100">
             <div class="card-header bg-primary text-white">
-                <h5><i class="bi bi-lightning-charge"></i> Acciones Rápidas</h5>
+                <h5><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
             </div>
             <div class="card-body d-flex flex-column">
                 <div class="d-grid gap-2 flex-grow-1 d-flex flex-column justify-content-center">
-                    <a href="@Url.Action("ChatIA", "Paciente")" class="btn btn-outline-primary">
-                        <i class="bi bi-chat-dots"></i> Iniciar Chat con IA
+                    <a href="@Url.Action("ChatIA", "Paciente")" class="btn btn-lg btn-outline-primary">
+                        <i class="fas fa-robot"></i> Iniciar Chat con IA
                     </a>
-                    <a href="@Url.Action("ReservarCita", "Paciente")" class="btn btn-outline-success">
-                        <i class="bi bi-calendar-plus"></i> Reservar Cita
-                    </a>
-                    <a href="@Url.Action("HistorialMedico", "Paciente")" class="btn btn-outline-info">
-                        <i class="bi bi-file-medical"></i> Ver Historial
+                    <a href="@Url.Action("HistorialMedico", "Paciente")" class="btn btn-lg btn-outline-success">
+                        <i class="fas fa-file-medical"></i> Ver Mi Historial Médico
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Próximas Citas -->
-    <div class="col-md-4 mb-4">
-        <div class="card h-100">
-            <div class="card-header bg-warning text-white">
-                <h5><i class="bi bi-calendar-check"></i> Próximas Citas</h5>
-            </div>
-            <div class="card-body">
-                @if (Model.ProximasCitas.Any())
-                {
-                    foreach (var cita in Model.ProximasCitas.Take(3))
-                    {
-                        <div class="border-bottom pb-2 mb-2">
-                            <div class="d-flex justify-content-between">
-                                <strong>@cita.Especialidad.Nombre</strong>
-                                <span class="badge bg-@(cita.Estado == Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.EstadoCita.Confirmada ? "success" : "warning")">
-                                    @cita.EstadoTexto
-                                </span>
-                            </div>
-                            <small class="text-muted">
-                                @cita.FechaHora.ToString("dd/MM/yyyy HH:mm")
-                            </small>
-                            <br>
-                            <small>@cita.MotivoConsulta</small>
-                        </div>
-                    }
-                    <div class="text-center mt-3">
-                        <a href="@Url.Action("MisCitas", "Paciente")" class="btn btn-sm btn-outline-warning">Ver Todas</a>
-                    </div>
-                }
-                else
-                {
-                    <p class="text-muted mb-0">No tienes citas programadas</p>
-                    <a href="@Url.Action("ReservarCita", "Paciente")" class="btn btn-sm btn-primary mt-2">Reservar Cita</a>
-                }
-            </div>
-        </div>
-    </div>
-
     <!-- Historial Reciente -->
-    <div class="col-md-4 mb-4">
+    <div class="col-md-6 mb-4">
         <div class="card h-100">
-            <div class="card-header bg-info text-white">
-                <h5><i class="bi bi-file-medical"></i> Historial Reciente</h5>
+            <div class="card-header bg-success text-white">
+                <h5><i class="fas fa-file-medical"></i> Mi Historial Reciente</h5>
             </div>
             <div class="card-body">
                 @if (Model.HistorialReciente.Any())
                 {
-                    foreach (var historial in Model.HistorialReciente.Take(3))
+                    foreach (var historial in Model.HistorialReciente.Take(5))
                     {
                         <div class="border-bottom pb-2 mb-2">
                             <strong>@historial.Diagnostico</strong>
@@ -156,7 +101,7 @@
                         </div>
                     }
                     <div class="text-center mt-3">
-                        <a href="@Url.Action("HistorialMedico", "Paciente")" class="btn btn-sm btn-outline-info">Ver Completo</a>
+                        <a href="@Url.Action("HistorialMedico", "Paciente")" class="btn btn-sm btn-outline-success">Ver Historial Completo</a>
                     </div>
                 }
                 else
@@ -172,8 +117,8 @@
     <!-- Chats IA Recientes -->
     <div class="col-12">
         <div class="card">
-            <div class="card-header bg-secondary text-white">
-                <h5><i class="bi bi-robot"></i> Chats con IA Recientes</h5>
+            <div class="card-header bg-info text-white">
+                <h5><i class="fas fa-robot"></i> Mis Chats con IA</h5>
             </div>
             <div class="card-body">
                 @if (Model.ChatsIA.Any())
@@ -183,7 +128,7 @@
                             <thead>
                                 <tr>
                                     <th>Fecha</th>
-                                    <th>Resumen</th>
+                                    <th>Consulta</th>
                                     <th>Nivel de Urgencia</th>
                                     <th>Estado</th>
                                     <th>Acciones</th>
@@ -212,7 +157,7 @@
                                         </td>
                                         <td>
                                             <a href="@Url.Action("Chat", "Paciente", new { id = chat.Id })" class="btn btn-sm btn-outline-primary">
-                                                Ver Chat
+                                                <i class="fas fa-eye"></i> Ver
                                             </a>
                                         </td>
                                     </tr>
@@ -224,10 +169,10 @@
                 else
                 {
                     <div class="text-center py-4">
-                        <i class="bi bi-chat-dots fs-1 text-muted"></i>
+                        <i class="fas fa-robot fs-1 text-muted"></i>
                         <p class="text-muted mt-2">No has iniciado ningún chat con la IA todavía</p>
-                        <a href="@Url.Action("ChatIA", "Paciente")" class="btn btn-primary">
-                            <i class="bi bi-chat-dots"></i> Iniciar Chat con IA
+                        <a href="@Url.Action("ChatIA", "Paciente")" class="btn btn-lg btn-primary">
+                            <i class="fas fa-robot"></i> Iniciar Chat con IA
                         </a>
                     </div>
                 }

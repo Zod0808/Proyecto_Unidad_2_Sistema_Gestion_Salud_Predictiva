@@ -1,0 +1,481 @@
+@model Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.PerfilPacienteViewModel
+
+@{
+    ViewBag.Title = "Mi Perfil";
+    Layout = "~/Views/Shared/_LayoutPaciente.cshtml";
+}
+
+<style>
+    .profile-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .profile-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px;
+        border-radius: 16px 16px 0 0;
+        margin-bottom: 0;
+        text-align: center;
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        font-size: 48px;
+        color: #667eea;
+    }
+
+    .profile-name {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .profile-role {
+        font-size: 14px;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .profile-body {
+        background: white;
+        padding: 30px;
+        border-radius: 0 0 16px 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #1c1e21;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #e4e6eb;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .section-title i {
+        color: #667eea;
+    }
+
+    .info-group {
+        margin-bottom: 24px;
+    }
+
+    .info-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #65676b;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .info-value {
+        font-size: 16px;
+        color: #1c1e21;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e4e6eb;
+    }
+
+    .info-value.empty {
+        color: #90949c;
+        font-style: italic;
+    }
+
+    .btn-edit-profile {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-edit-profile:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .btn-cancel {
+        background: #e4e6eb;
+        color: #1c1e21;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+    }
+
+    .btn-cancel:hover {
+        background: #ccd0d5;
+    }
+
+    .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    }
+
+    .badge-info-custom {
+        background: #e7f3ff;
+        color: #0066cc;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: #f8f9fa;
+        border: 1px solid #e4e6eb;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+    }
+
+    .stat-icon {
+        font-size: 32px;
+        color: #667eea;
+        margin-bottom: 10px;
+    }
+
+    .stat-value {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1c1e21;
+        margin-bottom: 5px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #65676b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <i class="fas fa-user"></i>
+        </div>
+        <div class="profile-name">@Model.NombreCompleto</div>
+        <div class="profile-role">
+            <i class="fas fa-user-injured"></i>
+            <span>Paciente RespiCare</span>
+            <span class="badge-info-custom">Activo</span>
+        </div>
+    </div>
+
+    <div class="profile-body">
+        <!-- Estadísticas rápidas -->
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-birthday-cake"></i>
+                </div>
+                <div class="stat-value">@Model.Edad</div>
+                <div class="stat-label">Años</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="stat-value">@Model.FechaRegistro.ToString("MMM yyyy")</div>
+                <div class="stat-label">Miembro desde</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-tint"></i>
+                </div>
+                <div class="stat-value">@Model.GrupoSanguineo</div>
+                <div class="stat-label">Grupo Sanguíneo</div>
+            </div>
+        </div>
+
+        @using (Html.BeginForm("ActualizarPerfil", "Paciente", FormMethod.Post, new { @class = "profile-form", id = "formPerfil" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.Id)
+            @Html.HiddenFor(m => m.FechaRegistro)
+
+            <!-- Información Personal -->
+            <div class="section-title">
+                <i class="fas fa-user-circle"></i>
+                Información Personal
+            </div>
+            
+            <div class="row">
+                <div class="col-md-6 info-group">
+                    <div class="info-label">@Html.LabelFor(m => m.NombreCompleto)</div>
+                    <div class="info-value" id="view-nombre">@Model.NombreCompleto</div>
+                    <div class="edit-field" style="display: none;">
+                        @Html.TextBoxFor(m => m.NombreCompleto, new { @class = "form-control", placeholder = "Ingrese su nombre completo" })
+                        @Html.ValidationMessageFor(m => m.NombreCompleto, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-md-6 info-group">
+                    <div class="info-label">@Html.LabelFor(m => m.Email)</div>
+                    <div class="info-value" id="view-email">@Model.Email</div>
+                    <div class="edit-field" style="display: none;">
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", type = "email", placeholder = "correo@ejemplo.com" })
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 info-group">
+                    <div class="info-label">@Html.LabelFor(m => m.Telefono)</div>
+                    <div class="info-value @(string.IsNullOrEmpty(Model.Telefono) || Model.Telefono == "No especificado" ? "empty" : "")" id="view-telefono">
+                        @if (string.IsNullOrEmpty(Model.Telefono) || Model.Telefono == "No especificado")
+                        {
+                            <text>No especificado</text>
+                        }
+                        else
+                        {
+                            @Model.Telefono
+                        }
+                    </div>
+                    <div class="edit-field" style="display: none;">
+                        @Html.TextBoxFor(m => m.Telefono, new { @class = "form-control", type = "tel", placeholder = "+51 999 999 999" })
+                        @Html.ValidationMessageFor(m => m.Telefono, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+                <div class="col-md-6 info-group">
+                    <div class="info-label">@Html.LabelFor(m => m.FechaNacimiento)</div>
+                    <div class="info-value" id="view-fechaNacimiento">@Model.FechaNacimiento.ToString("dd/MM/yyyy") (@Model.Edad años)</div>
+                    <div class="edit-field" style="display: none;">
+                        @Html.TextBoxFor(m => m.FechaNacimiento, "{0:yyyy-MM-dd}", new { @class = "form-control", type = "date" })
+                        @Html.ValidationMessageFor(m => m.FechaNacimiento, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 info-group">
+                    <div class="info-label">@Html.LabelFor(m => m.Genero)</div>
+                    <div class="info-value @(string.IsNullOrEmpty(Model.Genero) || Model.Genero == "No especificado" ? "empty" : "")" id="view-genero">
+                        @if (string.IsNullOrEmpty(Model.Genero) || Model.Genero == "No especificado")
+                        {
+                            <text>No especificado</text>
+                        }
+                        else
+                        {
+                            @Model.Genero
+                        }
+                    </div>
+                    <div class="edit-field" style="display: none;">
+                        @Html.DropDownListFor(m => m.Genero, new SelectList(new[] { "Masculino", "Femenino", "Otro", "Prefiero no decir" }), "Seleccione...", new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="col-md-6 info-group">
+                    <div class="info-label">@Html.LabelFor(m => m.GrupoSanguineo)</div>
+                    <div class="info-value @(string.IsNullOrEmpty(Model.GrupoSanguineo) || Model.GrupoSanguineo == "No especificado" ? "empty" : "")" id="view-grupoSanguineo">
+                        @if (string.IsNullOrEmpty(Model.GrupoSanguineo) || Model.GrupoSanguineo == "No especificado")
+                        {
+                            <text>No especificado</text>
+                        }
+                        else
+                        {
+                            @Model.GrupoSanguineo
+                        }
+                    </div>
+                    <div class="edit-field" style="display: none;">
+                        @Html.DropDownListFor(m => m.GrupoSanguineo, new SelectList(new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" }), "Seleccione...", new { @class = "form-control" })
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-group">
+                <div class="info-label">@Html.LabelFor(m => m.Direccion)</div>
+                <div class="info-value @(string.IsNullOrEmpty(Model.Direccion) || Model.Direccion == "No especificada" ? "empty" : "")" id="view-direccion">
+                    @if (string.IsNullOrEmpty(Model.Direccion) || Model.Direccion == "No especificada")
+                    {
+                        <text>No especificada</text>
+                    }
+                    else
+                    {
+                        @Model.Direccion
+                    }
+                </div>
+                <div class="edit-field" style="display: none;">
+                    @Html.TextBoxFor(m => m.Direccion, new { @class = "form-control", placeholder = "Ingrese su dirección completa" })
+                </div>
+            </div>
+
+            <!-- Información Médica -->
+            <div class="section-title mt-4">
+                <i class="fas fa-notes-medical"></i>
+                Información Médica
+            </div>
+
+            <div class="info-group">
+                <div class="info-label">@Html.LabelFor(m => m.Alergias)</div>
+                <div class="info-value @(string.IsNullOrEmpty(Model.Alergias) || Model.Alergias == "Ninguna conocida" ? "empty" : "")" id="view-alergias">
+                    @if (string.IsNullOrEmpty(Model.Alergias) || Model.Alergias == "Ninguna conocida")
+                    {
+                        <text>Ninguna conocida</text>
+                    }
+                    else
+                    {
+                        @Model.Alergias
+                    }
+                </div>
+                <div class="edit-field" style="display: none;">
+                    @Html.TextAreaFor(m => m.Alergias, new { @class = "form-control", rows = 3, placeholder = "Ejemplo: Polen, penicilina, mariscos..." })
+                </div>
+            </div>
+
+            <div class="info-group">
+                <div class="info-label">@Html.LabelFor(m => m.MedicamentosActuales)</div>
+                <div class="info-value @(string.IsNullOrEmpty(Model.MedicamentosActuales) || Model.MedicamentosActuales == "Ninguno" ? "empty" : "")" id="view-medicamentos">
+                    @if (string.IsNullOrEmpty(Model.MedicamentosActuales) || Model.MedicamentosActuales == "Ninguno")
+                    {
+                        <text>Ninguno</text>
+                    }
+                    else
+                    {
+                        @Model.MedicamentosActuales
+                    }
+                </div>
+                <div class="edit-field" style="display: none;">
+                    @Html.TextAreaFor(m => m.MedicamentosActuales, new { @class = "form-control", rows = 3, placeholder = "Ejemplo: Losartán 50mg, Metformina 850mg..." })
+                </div>
+            </div>
+
+            <div class="info-group">
+                <div class="info-label">@Html.LabelFor(m => m.CondicionesCronicas)</div>
+                <div class="info-value @(string.IsNullOrEmpty(Model.CondicionesCronicas) || Model.CondicionesCronicas == "Ninguna" ? "empty" : "")" id="view-condiciones">
+                    @if (string.IsNullOrEmpty(Model.CondicionesCronicas) || Model.CondicionesCronicas == "Ninguna")
+                    {
+                        <text>Ninguna</text>
+                    }
+                    else
+                    {
+                        @Model.CondicionesCronicas
+                    }
+                </div>
+                <div class="edit-field" style="display: none;">
+                    @Html.TextAreaFor(m => m.CondicionesCronicas, new { @class = "form-control", rows = 3, placeholder = "Ejemplo: Hipertensión, diabetes tipo 2, asma..." })
+                </div>
+            </div>
+
+            <!-- Contacto de Emergencia -->
+            <div class="section-title mt-4">
+                <i class="fas fa-phone-alt"></i>
+                Contacto de Emergencia
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 info-group">
+                    <div class="info-label">@Html.LabelFor(m => m.ContactoEmergencia)</div>
+                    <div class="info-value @(string.IsNullOrEmpty(Model.ContactoEmergencia) || Model.ContactoEmergencia == "No especificado" ? "empty" : "")" id="view-contactoEmergencia">
+                        @if (string.IsNullOrEmpty(Model.ContactoEmergencia) || Model.ContactoEmergencia == "No especificado")
+                        {
+                            <text>No especificado</text>
+                        }
+                        else
+                        {
+                            @Model.ContactoEmergencia
+                        }
+                    </div>
+                    <div class="edit-field" style="display: none;">
+                        @Html.TextBoxFor(m => m.ContactoEmergencia, new { @class = "form-control", placeholder = "Nombre del contacto de emergencia" })
+                    </div>
+                </div>
+                <div class="col-md-6 info-group">
+                    <div class="info-label">@Html.LabelFor(m => m.TelefonoEmergencia)</div>
+                    <div class="info-value @(string.IsNullOrEmpty(Model.TelefonoEmergencia) || Model.TelefonoEmergencia == "No especificado" ? "empty" : "")" id="view-telefonoEmergencia">
+                        @if (string.IsNullOrEmpty(Model.TelefonoEmergencia) || Model.TelefonoEmergencia == "No especificado")
+                        {
+                            <text>No especificado</text>
+                        }
+                        else
+                        {
+                            @Model.TelefonoEmergencia
+                        }
+                    </div>
+                    <div class="edit-field" style="display: none;">
+                        @Html.TextBoxFor(m => m.TelefonoEmergencia, new { @class = "form-control", type = "tel", placeholder = "+51 999 999 999" })
+                        @Html.ValidationMessageFor(m => m.TelefonoEmergencia, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="mt-4 text-center">
+                <button type="button" class="btn btn-edit-profile" id="btnEdit" onclick="toggleEditMode()">
+                    <i class="fas fa-edit"></i> Editar Perfil
+                </button>
+                <div id="editButtons" style="display: none;">
+                    <button type="submit" class="btn btn-edit-profile">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                    <button type="button" class="btn btn-cancel" onclick="toggleEditMode()">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        var editMode = false;
+
+        function toggleEditMode() {
+            editMode = !editMode;
+
+            if (editMode) {
+                // Mostrar campos de edición
+                $('.info-value').hide();
+                $('.edit-field').show();
+                $('#btnEdit').hide();
+                $('#editButtons').show();
+            } else {
+                // Mostrar valores (cancelar)
+                $('.info-value').show();
+                $('.edit-field').hide();
+                $('#btnEdit').show();
+                $('#editButtons').hide();
+            }
+        }
+
+        $(document).ready(function() {
+            // Auto-ocultar alertas después de 5 segundos
+            setTimeout(function() {
+                $('.alert').fadeOut('slow');
+            }, 5000);
+        });
+    </script>
+
+    @Scripts.Render("~/bundles/jqueryval")
+}
+

@@ -2,6 +2,7 @@ using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Helpers;
 using Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Services
@@ -93,6 +94,36 @@ namespace Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Services
         public async Task<bool> EstaDisponible()
         {
             return await HttpClientHelper.IsAIServiceAvailable();
+        }
+
+        /// <summary>
+        /// Genera respuesta del chat médico con IA
+        /// </summary>
+        public async Task<string> GenerarRespuestaChat(string mensaje, List<MensajeChat> historial)
+        {
+            try
+            {
+                // Convertir historial a formato para el servicio de IA
+                var historialConvertido = historial.Select(m => new ChatMessage
+                {
+                    Role = m.RoleText,
+                    Content = m.Content
+                }).ToList();
+
+                var request = new ChatBotRequest
+                {
+                    UserId = "user", // Se puede obtener del contexto
+                    Message = mensaje,
+                    ConversationHistory = historialConvertido
+                };
+
+                var response = await ProcesarConsultaChatBot(request);
+                return response.Response;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error al generar respuesta del chat: {ex.Message}", ex);
+            }
         }
     }
 

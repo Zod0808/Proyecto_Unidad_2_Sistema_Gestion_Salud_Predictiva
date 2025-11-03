@@ -1,173 +1,311 @@
 @model List<Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReporteSintomas>
+
 @{
-    ViewBag.Title = "Reportes de Síntomas";
-    Layout = "~/Views/Share/_Layout.cshtml";
+    ViewBag.Title = "Mis Reportes de Síntomas";
+    Layout = "~/Views/Shared/_LayoutPaciente.cshtml";
 }
 
-<div class="row">
-    <div class="col-12">
-        <h1><i class="fas fa-notes-medical"></i> Reportes de Síntomas</h1>
-        <p class="text-muted">Gestión de reportes de síntomas con análisis de IA</p>
-        <hr />
-    </div>
-</div>
+<style>
+    .reports-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
 
-<!-- Acciones -->
-<div class="row mb-3">
-    <div class="col-md-6">
-        <a href="@Url.Action("Create")" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Nuevo Reporte
-        </a>
-        <a href="@Url.Action("Urgentes")" class="btn btn-danger">
-            <i class="fas fa-exclamation-triangle"></i> Ver Urgentes
-        </a>
-        <a href="@Url.Action("Estadisticas")" class="btn btn-info">
-            <i class="fas fa-chart-bar"></i> Estadísticas
-        </a>
-    </div>
-    <div class="col-md-6 text-end">
-        <form method="get" action="@Url.Action("Index")" class="d-inline">
-            <div class="input-group" style="max-width: 400px; float: right;">
-                <input type="text" name="q" class="form-control" placeholder="Buscar..." />
-                <button type="submit" class="btn btn-secondary">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+    }
 
-<!-- Tabla de Reportes -->
-<div class="row">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-list"></i> Lista de Reportes (@(Model?.Count ?? 0))
-            </div>
-            <div class="card-body">
-                @if (Model != null && Model.Any())
-                {
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Paciente</th>
-                                    <th>Edad</th>
-                                    <th>Síntomas</th>
-                                    <th>Estado</th>
-                                    <th>IA</th>
-                                    <th>Urgencia</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var reporte in Model)
-                                {
-                                    <tr>
-                                        <td>@reporte.ReportedAt.ToString("dd/MM/yyyy HH:mm")</td>
-                                        <td>
-                                            <strong>@reporte.PatientName</strong><br/>
-                                            <small class="text-muted">@reporte.Gender</small>
-                                        </td>
-                                        <td>@reporte.Age años</td>
-                                        <td>
-                                            <span class="badge bg-secondary">@reporte.SymptomsCount síntomas</span>
-                                            @if (reporte.HasLocation)
-                                            {
-                                                <span class="badge bg-info">
-                                                    <i class="fas fa-map-marker-alt"></i>
-                                                </span>
-                                            }
-                                        </td>
-                                        <td>
-                                            @switch (reporte.Status)
-                                            {
-                                                case Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReportStatus.Pending:
-                                                    <span class="badge bg-warning">@reporte.StatusText</span>
-                                                    break;
-                                                case Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReportStatus.InReview:
-                                                    <span class="badge bg-primary">@reporte.StatusText</span>
-                                                    break;
-                                                case Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReportStatus.Reviewed:
-                                                    <span class="badge bg-success">@reporte.StatusText</span>
-                                                    break;
-                                                case Proyecto_Unidad_2_MVC_Sistema_Gestion_Salud_Predictiva.Models.ReportStatus.Closed:
-                                                    <span class="badge bg-secondary">@reporte.StatusText</span>
-                                                    break;
-                                            }
-                                        </td>
-                                        <td>
-                                            @if (reporte.HasAIAnalysis)
-                                            {
-                                                <span class="badge bg-success">
-                                                    <i class="fas fa-robot"></i> Analizado
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary">Sin análisis</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            @if (reporte.IsUrgent)
-                                            {
-                                                <span class="badge bg-danger">
-                                                    <i class="fas fa-exclamation-circle"></i> Urgente
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-success">Normal</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            <div class="btn-group" role="group">
-                                                <a href="@Url.Action("Details", new { id = reporte.Id })" 
-                                                   class="btn btn-sm btn-info" title="Ver Detalles">
-                                                    <i class="fas fa-eye"></i>
-                                                </a>
-                                                <a href="@Url.Action("Edit", new { id = reporte.Id })" 
-                                                   class="btn btn-sm btn-warning" title="Editar">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <a href="@Url.Action("Delete", new { id = reporte.Id })" 
-                                                   class="btn btn-sm btn-danger" title="Eliminar">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                }
-                else
-                {
-                    <div class="alert alert-info">
-                        <i class="fas fa-info-circle"></i> No hay reportes registrados.
-                        <a href="@Url.Action("Create")" class="alert-link">Crear el primer reporte</a>
-                    </div>
-                }
-            </div>
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1c1e21;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .page-title i {
+        color: #667eea;
+    }
+
+    .btn-new-report {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        transition: all 0.3s;
+    }
+
+    .btn-new-report:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        color: white;
+    }
+
+    .reports-grid {
+        display: grid;
+        gap: 20px;
+    }
+
+    .report-card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s;
+        border-left: 4px solid transparent;
+    }
+
+    .report-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+    }
+
+    .report-card.urgencia-5 { border-left-color: #dc3545; }
+    .report-card.urgencia-4 { border-left-color: #fd7e14; }
+    .report-card.urgencia-3 { border-left-color: #ffc107; }
+    .report-card.urgencia-2 { border-left-color: #20c997; }
+    .report-card.urgencia-1 { border-left-color: #0dcaf0; }
+
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .report-date {
+        font-size: 14px;
+        color: #65676b;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .report-badge {
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .badge-pendiente {
+        background: #e7f3ff;
+        color: #0066cc;
+    }
+
+    .badge-revisado {
+        background: #e7f6ed;
+        color: #198754;
+    }
+
+    .badge-atendido {
+        background: #f0f0f0;
+        color: #6c757d;
+    }
+
+    .urgencia-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .urgencia-5 .urgencia-badge { background: #fee; color: #dc3545; }
+    .urgencia-4 .urgencia-badge { background: #fff3cd; color: #fd7e14; }
+    .urgencia-3 .urgencia-badge { background: #fff8e1; color: #ffc107; }
+    .urgencia-2 .urgencia-badge { background: #d1f2eb; color: #20c997; }
+    .urgencia-1 .urgencia-badge { background: #cff4fc; color: #0dcaf0; }
+
+    .symptoms-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 16px 0;
+    }
+
+    .symptom-tag {
+        background: #f0f2f5;
+        padding: 6px 12px;
+        border-radius: 16px;
+        font-size: 13px;
+        color: #1c1e21;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .symptom-tag i {
+        font-size: 10px;
+        color: #667eea;
+    }
+
+    .report-recommendation {
+        background: #f8f9fa;
+        padding: 12px 16px;
+        border-radius: 8px;
+        border-left: 3px solid #667eea;
+        margin-top: 12px;
+        font-size: 14px;
+        color: #495057;
+    }
+
+    .report-actions {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid #e4e6eb;
+    }
+
+    .btn-view-detail {
+        background: #667eea;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: inline-block;
+    }
+
+    .btn-view-detail:hover {
+        background: #5568d3;
+        color: white;
+        text-decoration: none;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        color: #e4e6eb;
+        margin-bottom: 20px;
+    }
+
+    .empty-state-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #1c1e21;
+        margin-bottom: 10px;
+    }
+
+    .empty-state-text {
+        font-size: 14px;
+        color: #65676b;
+        margin-bottom: 24px;
+    }
+</style>
+
+<div class="reports-container">
+    <div class="page-header">
+        <div class="page-title">
+            <i class="fas fa-notes-medical"></i>
+            Mis Reportes de Síntomas
         </div>
+        <a href="@Url.Action("Crear", "ReporteSintomas")" class="btn btn-new-report">
+            <i class="fas fa-plus-circle"></i> Nuevo Reporte
+        </a>
     </div>
-</div>
 
-@section scripts {
-<script>
-    $(document).ready(function() {
-        // Inicializar tooltips
-        $('[title]').tooltip();
-        
-        // Confirmación antes de eliminar
-        $('a[href*="Delete"]').on('click', function(e) {
-            if (!confirm('¿Está seguro que desea eliminar este reporte?')) {
-                e.preventDefault();
+    @if (Model != null && Model.Any())
+    {
+        <div class="reports-grid">
+            @foreach (var reporte in Model)
+            {
+                <div class="report-card urgencia-@reporte.NivelUrgencia">
+                    <div class="report-header">
+                        <div class="report-date">
+                            <i class="fas fa-calendar-alt"></i>
+                            @reporte.FechaReporte.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                        <div>
+                            <span class="report-badge badge-@(reporte.Estado.ToLower())">
+                                @reporte.Estado
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="urgencia-badge">
+                        @if (reporte.NivelUrgencia >= 4)
+                        {
+                            <i class="fas fa-exclamation-triangle"></i>
+                        }
+                        else
+                        {
+                            <i class="fas fa-info-circle"></i>
+                        }
+                        Urgencia: Nivel @reporte.NivelUrgencia
+                    </div>
+
+                    <div class="symptoms-list">
+                        @foreach (var sintoma in reporte.Sintomas.Take(5))
+                        {
+                            <div class="symptom-tag">
+                                <i class="fas fa-circle"></i>
+                                @sintoma.Nombre
+                            </div>
+                        }
+                        @if (reporte.Sintomas.Count > 5)
+                        {
+                            <div class="symptom-tag">
+                                <i class="fas fa-ellipsis-h"></i>
+                                +@(reporte.Sintomas.Count - 5) más
+                            </div>
+                        }
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(reporte.RecomendacionIA))
+                    {
+                        <div class="report-recommendation">
+                            <strong><i class="fas fa-robot"></i> Recomendación IA:</strong> @reporte.RecomendacionIA
+                        </div>
+                    }
+
+                    <div class="report-actions">
+                        <a href="@Url.Action("Detalle", "ReporteSintomas", new { id = reporte.Id })" class="btn-view-detail">
+                            <i class="fas fa-eye"></i> Ver Detalle Completo
+                        </a>
+                        @if (!string.IsNullOrEmpty(reporte.Ubicacion) && reporte.Ubicacion != "No especificada")
+                        {
+                            <span style="margin-left: 16px; font-size: 13px; color: #65676b;">
+                                <i class="fas fa-map-marker-alt"></i> @reporte.Ubicacion
+                            </span>
+                        }
+                    </div>
+                </div>
             }
-        });
-    });
-</script>
-}
-
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-clipboard-list"></i>
+            </div>
+            <div class="empty-state-title">No tienes reportes de síntomas</div>
+            <div class="empty-state-text">
+                Crea tu primer reporte para llevar un seguimiento de tu salud y recibir recomendaciones personalizadas.
+            </div>
+            <a href="@Url.Action("Crear", "ReporteSintomas")" class="btn btn-new-report">
+                <i class="fas fa-plus-circle"></i> Crear Mi Primer Reporte
+            </a>
+        </div>
+    }
+</div>

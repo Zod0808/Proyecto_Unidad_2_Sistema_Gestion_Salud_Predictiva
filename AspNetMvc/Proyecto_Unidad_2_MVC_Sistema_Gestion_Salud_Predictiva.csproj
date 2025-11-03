@@ -24,6 +24,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
+    <FileEncoding>utf-8</FileEncoding>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -213,6 +214,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="Controllers\AuthsController.cs" />
     <Compile Include="Controllers\BaseController.cs" />
+    <Compile Include="Controllers\ChatController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\MedicoController.cs" />
     <Compile Include="Controllers\PacienteController.cs" />
@@ -246,6 +248,7 @@
     <Compile Include="Models\Sintoma.cs" />
     <Compile Include="Models\Ubicacion.cs" />
     <Compile Include="Services\AIService.cs" />
+    <Compile Include="Services\ChatService.cs" />
     <Compile Include="Services\HistorialMedicoService.cs" />
     <Compile Include="Services\ReporteSintomasService.cs" />
     <Compile Include="Services\UsuarioService.cs" />
@@ -275,11 +278,17 @@
     <Content Include="Views\Share\_Layout.cshtml" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="Views\Auths\Login.cshtml" />
-    <Content Include="Views\Paciente\ReservarCita.cshtml" />
-    <Content Include="Views\Medico\PacientesAtendidos.cshtml" />
+    <Content Include="Views\Chat\Conversacion.cshtml" />
+    <Content Include="Views\Chat\Index.cshtml" />
     <Content Include="Views\Medico\MiHorario.cshtml" />
+    <Content Include="Views\Medico\PacientesAtendidos.cshtml" />
+    <Content Include="Views\Paciente\ReservarCita.cshtml" />
     <Content Include="Views\DashboardRespiCare\Index.cshtml" />
     <Content Include="Views\ReporteSintomas\Index.cshtml" />
+    <Content Include="Views\ReporteSintomas\Crear.cshtml" />
+    <Content Include="Views\ReporteSintomas\Detalle.cshtml" />
+    <Content Include="Views\Paciente\Perfil.cshtml" />
+    <Content Include="Views\Shared\_LayoutPaciente.cshtml" />
     <None Include="Properties\PublishProfiles\Lab03MVCArce - FTP.pubxml" />
     <None Include="Properties\PublishProfiles\Lab03MVCArce - Web Deploy.pubxml" />
     <None Include="Web.Debug.config">

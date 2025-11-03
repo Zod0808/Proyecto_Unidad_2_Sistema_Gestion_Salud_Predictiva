@@ -1,49 +1,697 @@
 @{
-    ViewBag.Title = "Chat IA - Triaje Inteligente";
-    Layout = "~/Views/Share/_Layout.cshtml";
+    ViewBag.Title = "Chat Médico IA";
+    Layout = "~/Views/Shared/_LayoutPaciente.cshtml";
 }
 
-<div class="row mt-4">
-    <div class="col-md-8 mx-auto">
-        <div class="card shadow">
-            <div class="card-header bg-info text-white">
-                <i class="bi bi-chat-dots"></i> Chat IA - Evaluaci�n de S�ntomas
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+    }
+
+    .chat-page-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .chat-wrapper {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* Header del Chat */
+    .chat-header {
+        background: linear-gradient(135deg, #0084ff 0%, #0063d1 100%);
+        color: white;
+        padding: 20px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .bot-avatar {
+        width: 44px;
+        height: 44px;
+        background: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        color: #0084ff;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .bot-info h3 {
+        font-size: 16px;
+        font-weight: 600;
+        margin: 0 0 4px 0;
+    }
+
+    .bot-status {
+        font-size: 12px;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-online {
+        width: 8px;
+        height: 8px;
+        background: #4ade80;
+        border-radius: 50%;
+        box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.3);
+        animation: pulse-dot 2s infinite;
+    }
+
+    @@keyframes pulse-dot {
+        0%, 100% { 
+            transform: scale(1); 
+            opacity: 1; 
+        }
+        50% { 
+            transform: scale(1.1); 
+            opacity: 0.8; 
+        }
+    }
+
+    /* Área de Mensajes */
+    .chat-messages {
+        flex: 1;
+        padding: 24px;
+        overflow-y: auto;
+        background: #f8f9fa;
+        background-image: 
+            linear-gradient(90deg, rgba(200, 200, 200, 0.05) 1px, transparent 1px),
+            linear-gradient(rgba(200, 200, 200, 0.05) 1px, transparent 1px);
+        background-size: 20px 20px;
+    }
+
+    .message {
+        display: flex;
+        margin-bottom: 16px;
+        animation: message-appear 0.3s ease-out;
+    }
+
+    @@keyframes message-appear {
+        from {
+            opacity: 0;
+            transform: translateY(10px) scale(0.95);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .message.user {
+        justify-content: flex-end;
+    }
+
+    .message.bot {
+        justify-content: flex-start;
+    }
+
+    .message-bubble {
+        max-width: 65%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+        line-height: 1.5;
+    }
+
+    .message.user .message-bubble {
+        background: #0084ff;
+        color: white;
+        border-bottom-right-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 132, 255, 0.3);
+    }
+
+    .message.bot .message-bubble {
+        background: white;
+        color: #1c1e21;
+        border-bottom-left-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e4e6eb;
+    }
+
+    .message-time {
+        font-size: 11px;
+        margin-top: 6px;
+        opacity: 0.7;
+        text-align: right;
+    }
+
+    .message.bot .message-time {
+        color: #65676b;
+    }
+
+    .message.user .message-time {
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .badge-urgencia {
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        background: #ffc107;
+        color: #000;
+    }
+
+    /* Indicador de escritura */
+    .typing-indicator {
+        display: none;
+        padding: 12px 18px;
+        background: white;
+        border-radius: 18px;
+        border-bottom-left-radius: 4px;
+        width: fit-content;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e4e6eb;
+    }
+
+    .typing-indicator.show {
+        display: flex;
+        gap: 4px;
+        align-items: center;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #90949c;
+        animation: typing-bounce 1.4s infinite ease-in-out;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: 0s; }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @@keyframes typing-bounce {
+        0%, 60%, 100% { 
+            transform: translateY(0); 
+        }
+        30% { 
+            transform: translateY(-8px); 
+        }
+    }
+
+    /* Input de Mensaje */
+    .chat-input-area {
+        padding: 16px 24px;
+        background: white;
+        border-top: 1px solid #e4e6eb;
+    }
+
+    .chat-input-wrapper {
+        display: flex;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .chat-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #ccd0d5;
+        border-radius: 20px;
+        font-size: 15px;
+        outline: none;
+        transition: all 0.2s;
+        resize: none;
+        font-family: inherit;
+        line-height: 1.4;
+        max-height: 100px;
+    }
+
+    .chat-input:focus {
+        border-color: #0084ff;
+        box-shadow: 0 0 0 2px rgba(0, 132, 255, 0.1);
+    }
+
+    .send-button {
+        width: 40px;
+        height: 40px;
+        background: #0084ff;
+        border: none;
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        flex-shrink: 0;
+    }
+
+    .send-button:hover {
+        background: #0063d1;
+        transform: scale(1.05);
+    }
+
+    .send-button:active {
+        transform: scale(0.95);
+    }
+
+    .send-button:disabled {
+        background: #e4e6eb;
+        cursor: not-allowed;
+    }
+
+    .send-button svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    /* Estado vacío */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #65676b;
+        text-align: center;
+        padding: 40px;
+    }
+
+    .empty-state-icon {
+        font-size: 64px;
+        color: #e4e6eb;
+        margin-bottom: 16px;
+    }
+
+    .empty-state-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #1c1e21;
+    }
+
+    .empty-state-text {
+        font-size: 14px;
+        color: #65676b;
+        line-height: 1.6;
+    }
+
+    /* Scrollbar personalizado */
+    .chat-messages::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #ccd0d5;
+        border-radius: 3px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #b0b3b8;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .chat-wrapper {
+            height: calc(100vh - 150px);
+            border-radius: 0;
+        }
+
+        .message-bubble {
+            max-width: 80%;
+        }
+
+        .chat-page-container {
+            padding: 0;
+        }
+    }
+</style>
+
+<div class="chat-page-container">
+    <div class="chat-wrapper">
+        <!-- Header -->
+        <div class="chat-header">
+            <div class="chat-header-left">
+                <div class="bot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="bot-info">
+                    <h3>Asistente Médico Virtual</h3>
+                    <div class="bot-status">
+                        <span class="status-online"></span>
+                        <span>En línea - Evaluación de Síntomas</span>
+                    </div>
+                </div>
             </div>
-            <div class="card-body chat-container" style="max-height:400px; overflow-y:auto;">
-                <div class="message user">
-                    <div class="message-bubble">Hola, tengo dolor de cabeza y fiebre.</div>
-                </div>
-                <div class="message ai">
-                    <div class="message-bubble">�Desde cu�ndo presenta los s�ntomas?</div>
-                </div>
-                <div class="message user">
-                    <div class="message-bubble">Desde hace 2 d�as.</div>
-                </div>
-                <div class="message ai">
-                    <div class="message-bubble">�La fiebre es mayor a 38�C?</div>
-                </div>
-                <div class="message user">
-                    <div class="message-bubble">S�, 38.5�C.</div>
-                </div>
-                <div class="message ai">
-                    <div class="message-bubble">�Presenta otros s�ntomas como tos, dificultad para respirar o dolor muscular?</div>
-                </div>
-                <div class="message user">
-                    <div class="message-bubble">Solo dolor muscular.</div>
-                </div>
-                <div class="message ai">
-                    <div class="message-bubble">Nivel de urgencia estimado: <span class="badge bg-warning text-dark">2 - Moderado</span><br>Recomendaci�n: Solicite cita m�dica en las pr�ximas 24-48 horas.</div>
-                </div>
-            </div>
-            <div class="card-footer">
-                <form class="d-flex gap-2">
-                    <input type="text" class="form-control" placeholder="Escribe tu s�ntoma..." disabled>
-                    <button class="btn btn-info" type="button" disabled>Enviar</button>
-                </form>
+            <div>
+                <span class="badge-urgencia">
+                    <i class="fas fa-exclamation-triangle"></i> 2 - Moderado
+                </span>
             </div>
         </div>
-        <div class="mt-3 text-end">
-            <button class="btn btn-outline-secondary btn-sm" disabled>Exportar conversaci�n</button>
+
+        <!-- Mensajes -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot">
+                <div class="message-bubble">
+                    👋 ¡Hola! Soy tu asistente médico virtual. Estoy aquí para ayudarte con una evaluación inicial de tus síntomas. ¿Qué molestias presentas hoy?
+                    <div class="message-time">10:15</div>
+                </div>
+            </div>
+            
+            <div class="message user">
+                <div class="message-bubble">
+                    Hola, tengo dolor de cabeza y fiebre.
+                    <div class="message-time">10:15</div>
+                </div>
+            </div>
+
+            <div class="message bot">
+                <div class="message-bubble">
+                    Entiendo. El dolor de cabeza y la fiebre pueden tener varias causas. Para poder ayudarte mejor, necesito hacerte algunas preguntas:<br><br>
+                    1️⃣ ¿Desde cuándo presentas estos síntomas?<br>
+                    2️⃣ ¿Has medido tu temperatura? ¿Cuántos grados tienes?
+                    <div class="message-time">10:16</div>
+                </div>
+            </div>
+
+            <div class="message user">
+                <div class="message-bubble">
+                    Desde hace 2 días. Sí, 38.5°C.
+                    <div class="message-time">10:17</div>
+                </div>
+            </div>
+
+            <div class="message bot">
+                <div class="message-bubble">
+                    Gracias por la información. Una fiebre de 38.5°C es moderada. Ahora necesito saber:<br><br>
+                    • ¿Tienes otros síntomas como tos, dolor muscular, cansancio o dolor de garganta?<br>
+                    • ¿Has estado en contacto con personas enfermas recientemente?
+                    <div class="message-time">10:17</div>
+                </div>
+            </div>
+
+            <div class="message user">
+                <div class="message-bubble">
+                    Solo dolor muscular. No he estado con personas enfermas.
+                    <div class="message-time">10:18</div>
+                </div>
+            </div>
+
+            <div class="message bot">
+                <div class="message-bubble">
+                    <strong>📋 Evaluación Completada</strong><br><br>
+                    Basándome en tus síntomas (fiebre 38.5°C, dolor de cabeza, dolor muscular por 2 días), mi evaluación es:<br><br>
+                    <strong>🟡 Nivel de urgencia:</strong> <span class="badge-urgencia">2 - Moderado</span><br><br>
+                    <strong>💊 Recomendaciones:</strong><br>
+                    • Solicita cita médica en las próximas 24-48 horas<br>
+                    • Mantente hidratado (bebe abundante agua)<br>
+                    • Descansa lo suficiente<br>
+                    • Puedes tomar paracetamol para la fiebre (según indicación médica)<br>
+                    • Monitorea tu temperatura cada 4-6 horas<br><br>
+                    ⚠️ <strong>Acude a urgencias si:</strong> La fiebre supera 39°C, aparece dificultad respiratoria o los síntomas empeoran.
+                    <div class="message-time">10:18</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input-area">
+            <div class="chat-input-wrapper">
+                <input type="text" 
+                       class="chat-input" 
+                       id="mensajeInput" 
+                       placeholder="Escribe tu síntoma o pregunta..."
+                       autocomplete="off">
+                <button class="send-button" id="btnEnviar" type="button">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+            <div style="margin-top: 12px; text-align: center;">
+                <button class="btn btn-sm btn-outline-secondary" onclick="exportarConversacion()">
+                    <i class="fas fa-download"></i> Exportar conversación
+                </button>
+            </div>
         </div>
     </div>
 </div>
+
+@section scripts {
+    <script>
+        $(document).ready(function() {
+            // Configurar UTF-8
+            $.ajaxSetup({
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                scriptCharset: 'utf-8',
+                accepts: {
+                    text: 'text/plain; charset=UTF-8',
+                    json: 'application/json; charset=UTF-8'
+                }
+            });
+            
+            // Scroll al final
+            scrollToBottom();
+            
+            // Focus en input
+            $('#mensajeInput').focus();
+            
+            // Enviar con Enter
+            $('#mensajeInput').on('keypress', function(e) {
+                if (e.which === 13 && !e.shiftKey) {
+                    e.preventDefault();
+                    enviarMensaje();
+                }
+            });
+            
+            // Enviar con botón
+            $('#btnEnviar').on('click', function() {
+                enviarMensaje();
+            });
+        });
+        
+        function enviarMensaje() {
+            var mensaje = $('#mensajeInput').val().trim();
+            
+            if (mensaje === '') {
+                return;
+            }
+            
+            // Agregar mensaje del USUARIO (derecha)
+            agregarMensaje('user', mensaje);
+            
+            // Limpiar y deshabilitar input
+            $('#mensajeInput').val('').prop('disabled', true);
+            $('#btnEnviar').prop('disabled', true);
+            
+            // Mostrar indicador de escritura
+            mostrarEscribiendo(true);
+            
+            // Simular respuesta de IA (aquí se conectaría con el backend real)
+            setTimeout(function() {
+                mostrarEscribiendo(false);
+                
+                // Respuesta del BOT (izquierda)
+                var respuesta = generarRespuestaIA(mensaje);
+                agregarMensaje('bot', respuesta);
+                
+                // Habilitar input
+                $('#mensajeInput').prop('disabled', false).focus();
+                $('#btnEnviar').prop('disabled', false);
+            }, 1500);
+        }
+        
+        function agregarMensaje(tipo, contenido) {
+            var hora = new Date().toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            var $mensaje = $('<div>')
+                .addClass('message ' + tipo)
+                .html(
+                    '<div class="message-bubble">' +
+                        $('<div>').text(contenido).html() + // Escape HTML
+                        '<div class="message-time">' + hora + '</div>' +
+                    '</div>'
+                );
+            
+            $('#chatMessages').append($mensaje);
+            scrollToBottom();
+        }
+        
+        function mostrarEscribiendo(mostrar) {
+            if (mostrar) {
+                if ($('#typingIndicator').length === 0) {
+                    var $typing = $('<div>')
+                        .attr('id', 'typingIndicator')
+                        .addClass('message bot')
+                        .html(
+                            '<div class="typing-indicator show">' +
+                                '<span class="typing-dot"></span>' +
+                                '<span class="typing-dot"></span>' +
+                                '<span class="typing-dot"></span>' +
+                            '</div>'
+                        );
+                    $('#chatMessages').append($typing);
+                }
+            } else {
+                $('#typingIndicator').remove();
+            }
+            scrollToBottom();
+        }
+        
+        function scrollToBottom() {
+            var $messages = $('#chatMessages');
+            if ($messages.length) {
+                $messages.scrollTop($messages[0].scrollHeight);
+            }
+        }
+        
+        // Sistema de respuestas inteligente con contexto
+        var contextoConversacion = {
+            preguntasRealizadas: [],
+            sintomasReportados: [],
+            contadorPreguntas: 0
+        };
+        
+        function generarRespuestaIA(mensaje) {
+            var mensajeLower = mensaje.toLowerCase();
+            contextoConversacion.contadorPreguntas++;
+            
+            // Primera interacción - Saludo
+            if (contextoConversacion.contadorPreguntas === 1 && 
+                (mensajeLower.includes('hola') || mensajeLower.includes('buenas'))) {
+                return '👋 ¡Hola! Soy tu asistente médico virtual. Estoy aquí para ayudarte con una evaluación inicial de tus síntomas. ¿Qué molestias presentas hoy?';
+            }
+            
+            // Detección de síntomas específicos
+            if (mensajeLower.includes('tos')) {
+                contextoConversacion.sintomasReportados.push('tos');
+                if (!contextoConversacion.preguntasRealizadas.includes('tos_tipo')) {
+                    contextoConversacion.preguntasRealizadas.push('tos_tipo');
+                    return '🩺 Entiendo que tienes tos. Para ayudarte mejor necesito saber:<br><br>• ¿Es una tos seca o con flemas/mucosidad?<br>• ¿Hace cuánto tiempo tienes la tos?<br>• ¿Es más intensa por las noches o durante el día?';
+                } else {
+                    return '📝 Perfecto, he registrado tu tos. ¿Presentas otros síntomas como fiebre, dolor de pecho o dificultad para respirar?';
+                }
+            }
+            
+            if (mensajeLower.includes('fiebre') || mensajeLower.includes('temperatura') || mensajeLower.includes('calentura')) {
+                contextoConversacion.sintomasReportados.push('fiebre');
+                if (!contextoConversacion.preguntasRealizadas.includes('fiebre_medida')) {
+                    contextoConversacion.preguntasRealizadas.push('fiebre_medida');
+                    return '🌡️ Es importante monitorear la fiebre. Por favor indícame:<br><br>• ¿Has medido tu temperatura? ¿Cuántos grados tienes?<br>• ¿Desde hace cuánto tiempo tienes fiebre?<br>• ¿Has tomado algún medicamento para bajarla?';
+                } else {
+                    return '✅ Entendido. La fiebre es un síntoma importante. ¿Tienes otros síntomas como dolor muscular, escalofríos o sudoración?';
+                }
+            }
+            
+            if (mensajeLower.includes('dolor') && (mensajeLower.includes('cabeza') || mensajeLower.includes('cerebro'))) {
+                contextoConversacion.sintomasReportados.push('dolor_cabeza');
+                if (!contextoConversacion.preguntasRealizadas.includes('dolor_cabeza_caracteristicas')) {
+                    contextoConversacion.preguntasRealizadas.push('dolor_cabeza_caracteristicas');
+                    return '🤕 El dolor de cabeza puede tener diversas causas. Ayúdame con esto:<br><br>• ¿El dolor es pulsátil (late) o es constante?<br>• ¿Dónde se localiza? (frente, sienes, nuca)<br>• ¿Desde hace cuánto lo tienes?<br>• En escala del 1-10, ¿qué tan intenso es?';
+                } else {
+                    return '📋 He registrado tu dolor de cabeza. ¿Hay algo más que te moleste? Por ejemplo, ¿náuseas, vómito o sensibilidad a la luz?';
+                }
+            }
+            
+            if (mensajeLower.includes('respirar') || mensajeLower.includes('aire') || mensajeLower.includes('ahogar')) {
+                contextoConversacion.sintomasReportados.push('dificultad_respiratoria');
+                return '🚨 <strong>IMPORTANTE:</strong> La dificultad para respirar puede ser seria.<br><br>• ¿Puedes hablar oraciones completas sin fatigarte?<br>• ¿Tienes dolor en el pecho?<br>• ¿Tus labios o dedos se ven azulados?<br><br>⚠️ Si es muy severa, considera ir a urgencias de inmediato.';
+            }
+            
+            if (mensajeLower.includes('pecho') && mensajeLower.includes('dolor')) {
+                contextoConversacion.sintomasReportados.push('dolor_pecho');
+                return '⚠️ El dolor de pecho requiere atención. Necesito saber:<br><br>• ¿El dolor es punzante, opresivo o ardiente?<br>• ¿Empeora al respirar profundo o toser?<br>• ¿Se irradia hacia el brazo, cuello o espalda?<br><br>🚨 Si el dolor es muy intenso o no puedes respirar bien, acude a urgencias.';
+            }
+            
+            if (mensajeLower.includes('garganta')) {
+                contextoConversacion.sintomasReportados.push('dolor_garganta');
+                return '😷 El dolor de garganta es común. Dime:<br><br>• ¿Te duele al tragar?<br>• ¿Ves tus amígdalas inflamadas o con placas blancas?<br>• ¿Tienes ronquera o te cuesta hablar?<br>• ¿Tienes fiebre asociada?';
+            }
+            
+            if (mensajeLower.includes('nariz') || mensajeLower.includes('congestion') || mensajeLower.includes('moco')) {
+                contextoConversacion.sintomasReportados.push('congestion_nasal');
+                return '🤧 La congestión nasal puede ser muy molesta. Cuéntame:<br><br>• ¿Es una congestión constante o intermitente?<br>• ¿El moco es claro, amarillo o verde?<br>• ¿Tienes estornudos frecuentes?<br>• ¿Has perdido el sentido del olfato o el gusto?';
+            }
+            
+            // Si menciona varios síntomas en una frase
+            if ((mensajeLower.includes('tos') && mensajeLower.includes('fiebre')) || 
+                contextoConversacion.sintomasReportados.length >= 3) {
+                return '📊 Has reportado varios síntomas. Déjame hacer un resumen para evaluar tu situación:<br><br>' +
+                       '✓ Síntomas reportados: ' + contextoConversacion.sintomasReportados.join(', ') + '<br><br>' +
+                       '¿Desde cuándo comenzaron estos síntomas? ¿Todos al mismo tiempo o fueron apareciendo gradualmente?';
+            }
+            
+            // Respuestas para duraciones
+            if (mensajeLower.match(/\d+\s*(día|dias|hora|horas|semana|semanas)/)) {
+                return '✅ Gracias por esa información. Esto me ayuda a entender mejor tu situación.<br><br>' +
+                       '¿Hay algo más que consideres importante que deba saber? Por ejemplo:<br>' +
+                       '• ¿Has estado en contacto con personas enfermas?<br>' +
+                       '• ¿Tomas algún medicamento actualmente?<br>' +
+                       '• ¿Tienes alergias conocidas?';
+            }
+            
+            // Números (probablemente temperaturas)
+            if (mensajeLower.match(/\d+\.?\d*\s*(grados|°|c)/)) {
+                var temp = parseFloat(mensajeLower.match(/\d+\.?\d*/)[0]);
+                if (temp >= 39) {
+                    return '🚨 <strong>FIEBRE ALTA:</strong> Una temperatura de ' + temp + '°C es alta.<br><br>' +
+                           '⚠️ <strong>Recomendación urgente:</strong><br>' +
+                           '• Acude a urgencias o consulta médica HOY<br>' +
+                           '• Mientras tanto, toma abundante líquido<br>' +
+                           '• Puedes tomar un antipirético (paracetamol)<br><br>' +
+                           '¿Tienes otros síntomas que deba conocer?';
+                } else if (temp >= 38) {
+                    return '🌡️ Temperatura de ' + temp + '°C (fiebre moderada). <br><br>' +
+                           '💊 <strong>Recomendaciones:</strong><br>' +
+                           '• Mantente bien hidratado<br>' +
+                           '• Descansa adecuadamente<br>' +
+                           '• Considera programar cita médica en 24-48h<br><br>' +
+                           '¿Presentas otros síntomas además de la fiebre?';
+                } else {
+                    return '✅ Tu temperatura de ' + temp + '°C está en rango normal o subfebril.<br><br>' +
+                           '¿Qué otros síntomas te preocupan?';
+                }
+            }
+            
+            // Respuestas afirmativas/negativas
+            if (mensajeLower.match(/^(si|sí|no|nada|ninguno|ningun)/)) {
+                return '📝 Entendido. Basándome en lo que me has contado, necesito un poco más de información para darte una mejor evaluación.<br><br>' +
+                       '¿Podrías describirme todos los síntomas que presentas actualmente y desde hace cuánto tiempo?';
+            }
+            
+            // Respuesta genérica mejorada
+            return '🤔 Entiendo tu consulta. Para poder ayudarte de la mejor manera, necesito que me des más detalles específicos sobre:<br><br>' +
+                   '• ¿Qué síntomas exactos presentas?<br>' +
+                   '• ¿Desde hace cuánto tiempo los tienes?<br>' +
+                   '• ¿Qué tan intensos son (leve, moderado, severo)?<br><br>' +
+                   'Cuanto más específico seas, mejor podré orientarte. 😊';
+        }
+        
+        function exportarConversacion() {
+            alert('Funcionalidad de exportación en desarrollo. Se guardará el historial del chat.');
+        }
+    </script>
+}
